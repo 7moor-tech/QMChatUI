@@ -12,7 +12,7 @@
 
 #define REGULAREXPRESSION_OPTION(regularExpression,regex,option) \
 \
-static inline NSRegularExpression * k##regularExpression() { \
+static inline NSRegularExpression * k##regularExpression(void) { \
 static NSRegularExpression *_##regularExpression = nil; \
 static dispatch_once_t onceToken; \
 dispatch_once(&onceToken, ^{ \
@@ -22,32 +22,15 @@ _##regularExpression = [[NSRegularExpression alloc] initWithPattern:(regex) opti
 return _##regularExpression;\
 }\
 
-
 #define REGULAREXPRESSION(regularExpression,regex) REGULAREXPRESSION_OPTION(regularExpression,regex,NSRegularExpressionCaseInsensitive)
 
 
-//REGULAREXPRESSION(URLRegularExpression,@"((http[s]{0,1}|ftp)://[a-zA-Z0-9\\.\\-]+\\.([a-zA-Z]{2,4})(:\\d+)?(/[a-zA-Z0-9\\.\\-~!@#$%^&*+?:_/=<>]*)?)|(www.[a-zA-Z0-9\\.\\-]+\\.([a-zA-Z]{2,4})(:\\d+)?(/[a-zA-Z0-9\\.\\-~!@#$%^&*+?:_/=<>]*)?)|(((http[s]{0,1}|ftp)://|)((?:(?:25[0-5]|2[0-4]\\d|((1\\d{2})|([1-9]?\\d)))\\.){3}(?:25[0-5]|2[0-4]\\d|((1\\d{2})|([1-9]?\\d))))(:\\d+)?(/[a-zA-Z0-9\\.\\-~!@#$%^&*+?:_/=<>]*)?)")
 REGULAREXPRESSION(URLRegularExpression,@"((http[s]{0,1}|ftp)://[a-zA-Z0-9\\.\\-]+\\.([a-zA-Z]{2,4})(:\\d+)?(/[a-zA-Z0-9\\.\\-~!@#$%^&*+?:_/=<>]*)?)|(www.[a-zA-Z0-9\\.\\-]+\\.([a-zA-Z]{2,4})(:\\d+)?(/[a-zA-Z0-9\\.\\-~!@#$%^&*+?:_/=<>]*)?)|(((http[s]{0,1}|ftp)://|)((?:(?:25[0-5]|2[0-4]\\d|((1\\d{2})|([1-9]?\\d)))\\.){3}(?:25[0-5]|2[0-4]\\d|((1\\d{2})|([1-9]?\\d))))(:\\d+)?(/[a-zA-Z0-9\\.\\-~!@#$%^&*+?:_/=<>]*)?)")
-//REGULAREXPRESSION(URLRegularExpression,@"/((https|http|ftp|rtsp|mms)?://)?(([0-9a-z_!~*'().&=+$%-]+: )?[0-9a-z_!~*'().&=+$%-]+@)?(([0-9]{1,3}.){3}[0-9]{1,3}|([0-9a-z_!~*'()-]+.)*([0-9a-z][0-9a-z-]{0,61})?[0-9a-z].[a-z]{2,6})(:[0-9]{1,4})?(((/[0-9a-z_!~*'().;?:@&=+$,%#-]+)+/?)|(/?))/gi")
 
-//REGULAREXPRESSION(PhoneNumerRegularExpression, @"\\d{3}-\\d{8}|\\d{3}-\\d{7}|\\d{4}-\\d{8}|\\d{4}-\\d{7}|1+[3578]+\\d{9}|\\d{8}|\\d{7}")
-//REGULAREXPRESSION(PhoneNumerRegularExpression, @"(400[0-9]{0,1}-{0,1}\\d{3,4}-{0,1}\\d{3,4})|([0-9]{5,})")
 REGULAREXPRESSION(PhoneNumerRegularExpression, @"([0-9]{0,4}-{0,1}\\d{3,4}-{0,1}\\d{3,4})|([0-9]{5,})")
 
-//REGULAREXPRESSION(EmailRegularExpression, @"[A-Z0-9a-z\\._%+-]+@([A-Za-z0-9-]+\\.)+[A-Za-z]{2,4}")
-
-//REGULAREXPRESSION(AtRegularExpression, @"@[\\u4e00-\\u9fa5\\w\\-]+")
-
-//REGULAREXPRESSION(RobotRegularExpression, @"[0-9]+[：]+[0-9a-zA-Z\\u4e00-\\u9fa5]+\n")
 REGULAREXPRESSION(RobotRegularExpression, @"[0-9]{1,2}：[^\\n]*\\n")
 
-//@"#([^\\#|.]+)#"
-//REGULAREXPRESSION_OPTION(PoundSignRegularExpression, @"#([\\u4e00-\\u9fa5\\w\\-]+)#", NSRegularExpressionCaseInsensitive)
-
-//微信的表情符其实不是这种格式，这个格式的只是让人看起来更友好。。
-//REGULAREXPRESSION(EmojiRegularExpression, @"\\[[a-zA-Z0-9\\u4e00-\\u9fa5]+\\]")
-
-//@"/:[\\w:~!@$&*()|+<>',?-]{1,8}" , // @"/:[\\x21-\\x2E\\x30-\\x7E]{1,8}" ，经过检测发现\w会匹配中文，好奇葩。
 REGULAREXPRESSION(SlashEmojiRegularExpression, @"/:[\\x21-\\x2E\\x30-\\x7E]{1,8}")
 
 const CGFloat kLineSpacing = 4.0;

@@ -25,7 +25,7 @@
 
 @property (nonatomic, copy) NSArray *oldFields;
 
-@property (nonatomic, copy) NSMutableDictionary *condition;
+@property (nonatomic, strong) NSMutableDictionary *condition;
 
 @property (nonatomic, copy) NSString *leaveMsgString;
 
@@ -179,6 +179,7 @@
 }
 
 - (void)backToRootVC {
+    [QMConnect logout];
     [self.navigationController popToRootViewControllerAnimated:YES];
 }
 
@@ -207,7 +208,7 @@
                     [weakSelf backToRootVC];
                 });
             });
-        } failBlock:^{
+        } failBlock:^(NSString *reason){
             dispatch_async(dispatch_get_main_queue(), ^{
                 [QMRemind showMessage:QMUILocalizableString(title.messageFailure)];
                 weakSelf.isSucceed = NO;

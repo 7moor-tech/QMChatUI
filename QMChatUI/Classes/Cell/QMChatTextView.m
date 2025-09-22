@@ -12,11 +12,11 @@
 
 - (instancetype)init {
     if (self = [super init]) {
-        UIColor *color = [UIColor colorWithRed:32/255.0f green:188/255.0f blue:158/255.0f alpha:1];
+        UIColor *color = [UIColor colorWithHexString:QMColor_News_Custom];
         self.linkTextAttributes = @{NSForegroundColorAttributeName: color};
         self.editable = NO;
         self.scrollEnabled = NO;
-        self.layoutManager.allowsNonContiguousLayout = NO;
+//        self.layoutManager.allowsNonContiguousLayout = NO;
 
     }
     return self;

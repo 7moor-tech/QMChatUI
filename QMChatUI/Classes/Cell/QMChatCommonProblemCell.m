@@ -26,9 +26,9 @@
 
 @property (nonatomic) NSInteger selectedIndex;
 
-@property (nonatomic, copy) NSMutableArray *nameArray;
+@property (nonatomic, strong) NSMutableArray *nameArray;
 
-@property (nonatomic, copy) NSMutableArray *listArray;
+@property (nonatomic, strong) NSMutableArray *listArray;
 
 @property (nonatomic, strong) AnswerMoreView *answerMoreView;
 
@@ -70,14 +70,6 @@
 - (void)layoutSubviews {
     [super layoutSubviews];
     
-    [self.chatBackgroundView mas_makeConstraints:^(MASConstraintMaker *make) {
-        make.left.equalTo(self.contentView).offset(kChatIconMargin);
-        make.right.equalTo(self.contentView).offset(-kChatIconMargin);
-        make.top.equalTo(self.iconImage.mas_top).priority(999);
-        make.bottom.equalTo(self.contentView).offset(-kChatBottomMargin);
-        make.height.mas_greaterThanOrEqualTo(QMChatTextMinHeight);
-    }];
-    
     [self.titleImageView mas_makeConstraints:^(MASConstraintMaker *make) {
         make.top.equalTo(self.chatBackgroundView).offset(kChatBottomMargin);
         make.left.equalTo(self.chatBackgroundView).offset(QMFixWidth(15));
@@ -98,7 +90,7 @@
     }];
     
     [self.moreView mas_makeConstraints:^(MASConstraintMaker *make) {
-        make.top.equalTo(self.answerView.mas_bottom);
+        make.top.equalTo(self.answerView.mas_bottom).priority(999);
         make.left.right.equalTo(self.chatBackgroundView);
         make.height.mas_greaterThanOrEqualTo(1).priority(999);
         make.bottom.equalTo(self.chatBackgroundView.mas_bottom);
@@ -121,6 +113,14 @@
     self.iconImage.hidden = YES;
     
     [self setDarkStyle];
+    
+    [self.chatBackgroundView mas_remakeConstraints:^(MASConstraintMaker *make) {
+        make.left.equalTo(self.contentView).offset(kChatIconMargin);
+        make.right.equalTo(self.contentView).offset(-kChatIconMargin);
+        make.top.equalTo(self.iconImage.mas_top).priority(999);
+        make.bottom.equalTo(self.contentView).offset(-kChatBottomMargin);
+        make.height.mas_greaterThanOrEqualTo(QMChatTextMinHeight);
+    }];
 
     NSData *jsonData = [message.common_questions_group dataUsingEncoding:NSUTF8StringEncoding];
     NSError *err;
@@ -174,7 +174,7 @@
     CGFloat answerHeight = itemArray.count > 5 ? 5 * 45 + 40 : itemArray.count * 45;
 
     [self.answerView mas_remakeConstraints:^(MASConstraintMaker *make) {
-        make.top.equalTo(self.segmentView.mas_bottom);
+        make.top.equalTo(self.segmentView.mas_bottom).priority(999);
         make.left.right.equalTo(self.chatBackgroundView);
         make.height.mas_equalTo(answerHeight).priority(999);
     }];
@@ -183,14 +183,14 @@
     
     if (self.moreView.hidden == YES) {
         [self.moreView mas_remakeConstraints:^(MASConstraintMaker *make) {
-            make.top.equalTo(self.answerView.mas_bottom);
+            make.top.equalTo(self.answerView.mas_bottom).priority(999);
             make.left.right.equalTo(self.chatBackgroundView);
             make.height.mas_equalTo(1);
             make.bottom.equalTo(self.chatBackgroundView.mas_bottom);
         }];
     } else {
         [self.moreView mas_remakeConstraints:^(MASConstraintMaker *make) {
-            make.top.equalTo(self.answerView.mas_bottom).offset(-39);
+            make.top.equalTo(self.answerView.mas_bottom).offset(-39).priority(999);
             make.left.right.equalTo(self.chatBackgroundView);
             make.bottom.equalTo(self.chatBackgroundView.mas_bottom);
         }];

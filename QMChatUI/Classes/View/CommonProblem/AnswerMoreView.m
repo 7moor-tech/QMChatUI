@@ -7,7 +7,7 @@
 
 #import "AnswerMoreView.h"
 #import "QMHeader.h"
-#import "Masonry.h"
+#import <Masonry/Masonry.h>
 @interface AnswerMoreView () <UITableViewDelegate, UITableViewDataSource, UIGestureRecognizerDelegate>
 
 @property (nonatomic, strong) UITableView *tableView;

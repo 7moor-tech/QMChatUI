@@ -15,7 +15,6 @@
 @property (nonatomic, strong) UIImageView *fileImageView;
 @property (nonatomic, strong) UILabel *fileName;
 @property (nonatomic, strong) UILabel *fileSize;
-@property (nonatomic, strong) UIProgressView *progressView;
 @property (nonatomic, strong) PieView *pieView;
 
 @end
@@ -36,12 +35,6 @@
     _fileSize = [[UILabel alloc] init];
     _fileSize.font = QMFONT(11);
     [self.chatBackgroundView addSubview:_fileSize];
-    
-    _progressView = [UIProgressView new];
-    _progressView.progressTintColor = UIColor.redColor;
-    _progressView.tintColor = UIColor.grayColor;
-    _progressView.hidden = YES;
-    [self.chatBackgroundView addSubview:_progressView];
     
     [self.fileImageView mas_makeConstraints:^(MASConstraintMaker *make) {
         make.right.equalTo(self.chatBackgroundView).offset(-15);
@@ -64,49 +57,52 @@
         make.right.lessThanOrEqualTo(self.chatBackgroundView).offset(-100);
     }];
     
-    [self.progressView mas_makeConstraints:^(MASConstraintMaker *make) {
-        make.left.equalTo(self.fileName);
-        make.right.equalTo(self.chatBackgroundView).offset(-10);
-        make.bottom.equalTo(self.chatBackgroundView).offset(-4);
-        make.height.mas_equalTo(2);
-    }];
-    
     UITapGestureRecognizer *tapRecognizer = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(tapRecognizerAction)];
     [self.chatBackgroundView addGestureRecognizer:tapRecognizer];
 }
 
 - (void)setData:(CustomMessage *)message avater:(NSString *)avater {
-    [super setData:message avater:avater];
     self.message = message;
+    [super setData:message avater:avater];
     
-    self.chatBackgroundView.backgroundColor = UIColor.whiteColor;
+    self.chatBackgroundView.backgroundColor = [UIColor colorWithHexString:isDarkStyle ? QMColor_News_Agent_Dark : QMColor_News_Agent_Light];
     self.fileName.text = message.fileName ? : @"";
     
+    NSString *fileSizeText = @"";
+    if (message.fileSize == nil) {
+        fileSizeText = @"0 K";
+    }else {
+        NSArray *textArray = [message.fileSize componentsSeparatedByString:@"&"];
+        fileSizeText = textArray[0];
+    }
     if ([message.fromType isEqualToString:@"1"]) {
-        [self updateDownStatus];
+        [self updateDownStatus:fileSizeText];
     }
     else {
-        [self updateSendStatues];
+        [self updateSendStatues:fileSizeText];
     }
 
     NSString *imageName = [self matchImageWithFileNameExtension: message.fileName.pathExtension.lowercaseString];
-    self.fileImageView.image = [UIImage imageNamed:QMUIComponentImagePath(imageName)];
+    self.fileImageView.image = [UIImage imageNamed:QMChatUIImagePath(imageName)];
     
 }
 
 - (void)tapRecognizerAction {
     
-    if (self.message.localFilePath == nil) {
+    if (self.message.localFilePath.length < 1) {
         NSString *localPath = [[QMProfileManager sharedInstance] checkFileExtension: self.message.fileName];
         __weak QMChatFileCell *weakSelf = self;
         [QMConnect downloadFileWithMessage:self.message localFilePath:localPath progressHander:^(float progress) {
             dispatch_async(dispatch_get_main_queue(), ^{
-                [weakSelf setProgress:progress];
+//                [weakSelf setProgress:progress];
             });
         } successBlock:^{
             // 图片或视频存储至相册
             dispatch_async(dispatch_get_main_queue(), ^{
                 [weakSelf setProgress:1];
+//                //下载文件路径
+//                NSString *rootPath = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES)[0];
+//                NSString *localFilePath = [rootPath stringByAppendingPathComponent:localPath];
             });
         } failBlock:^(NSString * _Nonnull error) {
             [weakSelf setProgress:1];
@@ -121,7 +117,7 @@
     }
 }
 
-- (void)updateSendStatues {
+- (void)updateSendStatues:(NSString *)fileSizetext {
     NSString *status = @"";
     if ([self.message.status isEqualToString:@"0"]) {
         status = @"发送成功";
@@ -130,24 +126,24 @@
     } else {
         status = @"发送中";
     }
-    NSString *fileSize = [self.message.fileSize ? [self.message.fileSize stringByAppendingString:@" / "] : @"" stringByAppendingString:status];
+    NSString *fileSize = [NSString stringWithFormat:@"%@ / %@",fileSizetext, status];
     
     self.fileSize.text = fileSize;
 
 }
 
-- (void)updateDownStatus {
+- (void)updateDownStatus:(NSString *)fileSizetext {
     
     NSString *status = @"";
 
     if ([self.message.downloadState isEqualToString:@"0"]) {
         status = @"已下载";
     } else if ([self.message.downloadState isEqualToString:@"1"]) {
-        status = @"下载失败";
-    } else {
         status = @"未下载";
+    } else {
+        status = @"下载中";
     }
-    NSString *fileSize = [self.message.fileSize ? [self.message.fileSize stringByAppendingString:@" / "] : @"" stringByAppendingString:status];
+    NSString *fileSize = [NSString stringWithFormat:@"%@ / %@",fileSizetext, status];
     
     self.fileSize.text = fileSize;
 
@@ -183,9 +179,16 @@
         [self.fileImageView addSubview:self.pieView];
         [self.pieView stroke];
         if (progress >= 1) {
+            NSString *fileSizeText = @"";
+            if (self.message.fileSize == nil) {
+                fileSizeText = @"0 K";
+            }else {
+                NSArray *textArray = [self.message.fileSize componentsSeparatedByString:@"&"];
+                fileSizeText = textArray[0];
+            }
             if ([self.message.fromType isEqualToString:@"0"]) {
                 self.message.status = @"0";
-                [self updateSendStatues];
+                [self updateSendStatues:fileSizeText];
             }
         }
     });

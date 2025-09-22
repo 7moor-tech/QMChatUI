@@ -9,7 +9,6 @@
 #import "QMChatRoomXbotCardView.h"
 #import <QMLineSDK/QMLineSDK.h>
 #import "QMMoreCardView.h"
-#import "JSONModel.h"
 #import "QMChatShowRichTextController.h"
 #import "QMHeader.h"
 #import "Masonry.h"
@@ -221,7 +220,7 @@
         [cell setDataListDic:_dataSource[indexPath.row] cellWidth:CGRectGetWidth(_tableView.frame)];
         return cell;
     }
-    return nil;
+    return [UITableViewCell new];
 }
 
 - (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath {
@@ -352,8 +351,9 @@
     NSString *imgUrl = dic[@"img"];
     if (imgUrl && [imgUrl stringByRemovingPercentEncoding] == imgUrl) {
         imgUrl = [imgUrl stringByAddingPercentEncodingWithAllowedCharacters:[NSCharacterSet URLQueryAllowedCharacterSet]];
+        [_shopImageView sd_setImageWithURL:[NSURL URLWithString:imgUrl] placeholderImage:[UIImage imageNamed:QMChatUIImagePath(@"qm_default_user")]];
     }
-    [_shopImageView sd_setImageWithURL:[NSURL URLWithString:imgUrl] placeholderImage:[UIImage imageNamed:QMChatUIImagePath(@"qm_default_user")]];
+    
     _shopName.text = dic[@"title"];
     NSString *statusStr = dic[@"status"];
     if (statusStr.length > 0) {
@@ -450,8 +450,8 @@
     NSString *imgUrl = dic[@"img"];
     if (imgUrl && [imgUrl stringByRemovingPercentEncoding] == imgUrl) {
         imgUrl = [imgUrl stringByAddingPercentEncodingWithAllowedCharacters:[NSCharacterSet URLQueryAllowedCharacterSet]];
+        [_listImageView sd_setImageWithURL:[NSURL URLWithString:imgUrl]];
     }
-    [_listImageView sd_setImageWithURL:[NSURL URLWithString:imgUrl]];
     
     _title.text = dic[@"title"];
     _price.text = dic[@"price"];

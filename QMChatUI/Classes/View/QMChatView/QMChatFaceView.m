@@ -7,85 +7,233 @@
 
 #import "QMChatFaceView.h"
 #import "QMHeader.h"
+#import <Masonry/Masonry.h>
+#import "QMChatEmoji.h"
 
-#define FaceSectionBarHeight  46   // 表情下面控件
-#define FacePageControlHeight 30  // 表情pagecontrol
+@interface QMChatFaceView () <UICollectionViewDelegate, UICollectionViewDataSource>
 
-#define Pages 2
+@property (nonatomic, strong) NSArray *dataArray;
 
-@implementation QMChatFaceView {
-    UIPageControl *pageControl;
-    UIScrollView *scrollView;
-}
+@property (nonatomic, strong) UICollectionView *collectionView;
 
-- (id)initWithFrame:(CGRect)frame {
+@property (nonatomic, strong) UIView *coverView;
+
+@property (nonatomic, strong) UIButton *deleteBtn;
+
+@property (nonatomic, strong) UIButton *sendBtn;
+
+@end
+
+@implementation QMChatFaceView
+
+- (instancetype)initWithFrame:(CGRect)frame
+{
     self = [super initWithFrame:frame];
     if (self) {
-        [self createView];
+        self.backgroundColor = [UIColor whiteColor];
+        [self addSubview:self.collectionView];
+        [self addSubview:self.coverView];
+        [self.coverView addSubview:self.sendBtn];
+        [self.coverView addSubview:self.deleteBtn];
+        
+        [self layoutViews];
+        [self loadData];
+        [NSNotificationCenter.defaultCenter addObserver:self selector:@selector(inputViewDidChange:) name:@"QM__inputViewDidChange" object:nil];
     }
     return self;
 }
 
-- (void)layoutSubviews {
-    [super layoutSubviews];
+- (void)layoutViews {
+    [self.collectionView mas_makeConstraints:^(MASConstraintMaker *make) {
+        make.edges.equalTo(self);
+    }];
     
-    [scrollView removeFromSuperview];
-    [pageControl removeFromSuperview];
-    [self.sendButton removeFromSuperview];
-    [self createView];
-    scrollView.backgroundColor = [UIColor colorWithHexString:isDarkStyle ? QMColor_1E1E1E_BG : QMColor_F6F6F6_BG];
-    self.backgroundColor = [UIColor colorWithHexString:isDarkStyle ? QMColor_1E1E1E_BG : QMColor_F6F6F6_BG];
+    CGFloat itemWidth = QM_kScreenWidth/8;
+    CGFloat btnWidth = 50;
+    [self.coverView mas_makeConstraints:^(MASConstraintMaker *make) {
+        make.right.bottom.equalTo(self);
+        make.width.mas_equalTo(itemWidth * 3);
+        make.height.mas_equalTo(QM_IS_iPHONEX ? itemWidth + 34 : itemWidth);
+    }];
+    
+    [self.deleteBtn mas_makeConstraints:^(MASConstraintMaker *make) {
+        make.left.equalTo(self.coverView).offset(itemWidth/2);
+        make.top.equalTo(self.coverView).offset(8);
+        make.width.mas_equalTo(btnWidth);
+        make.height.mas_equalTo(35);
+    }];
+    
+    [self.sendBtn mas_makeConstraints:^(MASConstraintMaker *make) {
+        make.right.equalTo(self.coverView).offset(-10);
+        make.height.top.width.equalTo(self.deleteBtn);
+    }];
 }
 
-- (void)createView{
-    self.backgroundColor = [UIColor whiteColor];
-    
-    scrollView = [[UIScrollView alloc]initWithFrame:CGRectMake(0.0f,5.0f,CGRectGetWidth(self.bounds),CGRectGetHeight(self.bounds)-(QM_IS_iPHONEX ? 34 : 0)-FacePageControlHeight-FaceSectionBarHeight)];
-    scrollView.delegate = self;
-    [self addSubview:scrollView];
-    [scrollView setPagingEnabled:YES];
-    [scrollView setShowsHorizontalScrollIndicator:NO];
-    [scrollView setContentSize:CGSizeMake(CGRectGetWidth(scrollView.frame)*Pages,CGRectGetHeight(scrollView.frame))];
-    
-    for (int i= 0;i<Pages;i++) {
-        TCFaceView *faceView = [[TCFaceView alloc]initWithFrame:CGRectMake(i*CGRectGetWidth(self.bounds),0.0f,CGRectGetWidth(self.bounds),CGRectGetHeight(scrollView.bounds)) forIndexPath:i];
-        [scrollView addSubview:faceView];
-        faceView.delegate = self;
-    }
-    
-    pageControl = [[UIPageControl alloc]init];
-    [pageControl setFrame:CGRectMake(0,CGRectGetMaxY(scrollView.frame),CGRectGetWidth(self.bounds),FacePageControlHeight)];
-    [self addSubview:pageControl];
-    [pageControl setPageIndicatorTintColor:[UIColor lightGrayColor]];
-    [pageControl setCurrentPageIndicatorTintColor:[UIColor grayColor]];
-    pageControl.numberOfPages = Pages;
-    pageControl.currentPage   = 0;
+- (void)loadData {
+    if (self.dataArray == 0) {
         
-    self.sendButton = [UIButton buttonWithType:UIButtonTypeCustom];
-    self.sendButton.frame = CGRectMake(self.bounds.size.width-70, self.bounds.size.height-(QM_IS_iPHONEX ? 34 : 0)-30, 50, 30);
-    self.sendButton.backgroundColor = [UIColor colorWithRed:13/255.0 green:139/255.0 blue:249/255.0 alpha:1];
-    [self.sendButton setTitle:QMUILocalizableString(button.send) forState:UIControlStateNormal];
-    [self.sendButton addTarget:self action:@selector(buttonAction:) forControlEvents:UIControlEventTouchUpInside];
-    [self addSubview:self.sendButton];
-}
-
-- (void)buttonAction:(UIButton *)button {
-    if (self.delegate && [self.delegate respondsToSelector:@selector(sendFaceAction)]) {
-        [self.delegate sendFaceAction];
+        NSString *bundlePath = [[NSBundle mainBundle] pathForResource:@"QMEmoticon" ofType:@"bundle"];
+        NSString *fileName = [QMTUIBundle(QMChatUIBundle) pathForResource:@"expressionImage" ofType:@"plist"];
+        NSDictionary *plistDict = [NSDictionary dictionaryWithContentsOfFile:fileName];
+        NSMutableArray *items = [NSMutableArray array];
+        for (int i = 0; i<[[plistDict allKeys] count]; i++)
+        {
+            QMChatEmoji *item = [QMChatEmoji new];
+            NSString *imageStr = [NSString stringWithFormat:@"emoji_%d",i+1];
+            NSString *imagePath = [NSString stringWithFormat:@"%@/%@", bundlePath,imageStr];
+            item.image = [UIImage imageWithContentsOfFile:imagePath];
+            NSString *image = [NSString stringWithFormat:@"emoji_%d.png",i+1];
+            for (int j = 0; j<[[plistDict allKeys] count]; j++)
+            {
+                if ([[plistDict objectForKey:[[plistDict allKeys] objectAtIndex:j]]
+                     isEqualToString:image])
+                {
+                    item.name = [[plistDict allKeys] objectAtIndex:j];
+                }
+            }
+            [items addObject:item];
+        }
+        self.dataArray = items;
+        [self.collectionView reloadData];
     }
 }
 
-#pragma mark  scrollView Delegate
--(void)scrollViewDidScroll:(UIScrollView *)scrollView {
-    int page = scrollView.contentOffset.x/320;
-    pageControl.currentPage = page;
+- (UICollectionView *)collectionView {
+    if (!_collectionView) {
+        UICollectionViewFlowLayout *flowlayout = [[UICollectionViewFlowLayout alloc] init];
+        CGFloat itemWidth = QM_kScreenWidth/8;
+        flowlayout.itemSize = CGSizeMake(itemWidth, itemWidth);
+        CGFloat space = 0;
+        flowlayout.minimumLineSpacing = space;
+        flowlayout.minimumInteritemSpacing = space;
+        flowlayout.sectionInset = UIEdgeInsetsMake(0, 0, itemWidth - 10, 0);
+        _collectionView = [[UICollectionView alloc] initWithFrame:CGRectZero collectionViewLayout:flowlayout];
+        _collectionView.backgroundColor = QM_RGB(238, 238, 238);
+        _collectionView.delegate = self;
+        _collectionView.dataSource = self;
+        [_collectionView registerClass:[QMChatFaceCell class] forCellWithReuseIdentifier:NSStringFromClass([QMChatFaceCell self])];
+    }
+    return _collectionView;
 }
 
-#pragma mark ZBFaceView Delegate
-- (void)didSelecteFace:(NSString *)faceName andIsSelecteDelete:(BOOL)del {
-    if ([self.delegate respondsToSelector:@selector(SendTheFaceStr:isDelete:)]) {
-        [self.delegate SendTheFaceStr:faceName isDelete:del];
+- (UIView *)coverView {
+    if (!_coverView) {
+        _coverView = [[UIView alloc] init];
+        _coverView.backgroundColor = QM_RGBA(238, 238, 238, 0.8);
+        _coverView.layer.cornerRadius = 1.5;
+        _coverView.clipsToBounds = YES;
+    }
+    return _coverView;
+}
+
+- (void)setButtonEnble:(BOOL)enable {
+    self.deleteBtn.enabled = enable;
+    self.sendBtn.enabled = enable;
+}
+
+- (void)inputViewDidChange:(NSNotification *)notif {
+    NSString *text = (NSString *)notif.object;
+    if ([text isKindOfClass:[NSString class]]) {
+        if (text.length > 0) {
+            self.deleteBtn.enabled = YES;
+            self.sendBtn.enabled = YES;
+        } else {
+            self.deleteBtn.enabled = NO;
+            self.sendBtn.enabled = NO;
+        }
+    }
+}
+
+- (UIButton *)sendBtn {
+    if (!_sendBtn) {
+        _sendBtn = [[UIButton alloc] init];
+        [_sendBtn setTitle:QMUILocalizableString(button.send) forState:UIControlStateNormal];
+        [_sendBtn setBackgroundImage:[UIImage imageFromColor:[UIColor colorWithHexString:QMColor_News_Custom]] forState:UIControlStateNormal];
+        [_sendBtn setBackgroundImage:[UIImage imageFromColor:UIColor.whiteColor] forState:UIControlStateDisabled];
+        [_sendBtn setTitleColor:UIColor.whiteColor forState:UIControlStateNormal];
+        [_sendBtn setTitleColor:QM_RGB(153, 153, 153) forState:UIControlStateDisabled];
+        _sendBtn.titleLabel.font = [UIFont fontWithName:QM_PingFangSC_Reg size:14];
+        _sendBtn.layer.cornerRadius = 5;
+        _sendBtn.clipsToBounds = YES;
+        [_sendBtn addTarget:self action:@selector(sendAction) forControlEvents:UIControlEventTouchUpInside];
+    }
+    return _sendBtn;
+}
+
+- (UIButton *)deleteBtn {
+    if (!_deleteBtn) {
+        _deleteBtn = [UIButton buttonWithType:UIButtonTypeCustom];
+        [_deleteBtn setImage:[UIImage imageNamed:QMChatUIImagePath(@"face_delete")] forState:UIControlStateNormal];
+        [_deleteBtn setImage:[UIImage imageNamed:QMChatUIImagePath(@"face_delete_disable")] forState:UIControlStateDisabled];
+        [_deleteBtn setBackgroundImage:[UIImage imageFromColor:UIColor.whiteColor] forState:UIControlStateNormal];
+        [_deleteBtn setBackgroundImage:[UIImage imageFromColor:UIColor.whiteColor] forState:UIControlStateDisabled];
+
+        _deleteBtn.layer.cornerRadius = 5;
+        _deleteBtn.clipsToBounds = YES;
+        [_deleteBtn addTarget:self action:@selector(deleteAction) forControlEvents:UIControlEventTouchUpInside];
+    }
+    return _deleteBtn;
+}
+
+- (void)sendAction {
+    if (self.delegate && [self.delegate respondsToSelector:@selector(touchFaceSendBtn)]) {
+        [self.delegate touchFaceSendBtn];
+    }
+}
+
+- (void)deleteAction {
+    if (self.delegate && [self.delegate respondsToSelector:@selector(touchFaceDeleteBtn)]) {
+        [self.delegate touchFaceDeleteBtn];
+    }
+}
+
+- (NSInteger)collectionView:(UICollectionView *)collectionView numberOfItemsInSection:(NSInteger)section {
+    return self.dataArray.count;
+}
+
+- (__kindof UICollectionViewCell *)collectionView:(UICollectionView *)collectionView cellForItemAtIndexPath:(NSIndexPath *)indexPath {
+    QMChatFaceCell *cell = [collectionView dequeueReusableCellWithReuseIdentifier:NSStringFromClass([QMChatFaceCell class]) forIndexPath:indexPath];
+//    cell.backgroundColor = [UIColor orangeColor];
+//    cell.layer.borderWidth = 2;
+    QMChatEmoji *emoji = self.dataArray[indexPath.row];
+    cell.imageView.image = emoji.image;
+    return cell;
+}
+
+- (void)collectionView:(UICollectionView *)collectionView didSelectItemAtIndexPath:(NSIndexPath *)indexPath {
+    
+    if (self.delegate && [self.delegate respondsToSelector:@selector(touchFaceEmoji:)]) {
+        QMChatEmoji *emoji = self.dataArray[indexPath.row];
+
+        [self.delegate touchFaceEmoji:emoji];
     }
 }
 
 @end
+
+@implementation QMChatFaceCell
+
+- (instancetype)initWithFrame:(CGRect)frame
+{
+    self = [super initWithFrame:frame];
+    if (self) {
+        [self.contentView addSubview:self.imageView];
+        [self.imageView mas_makeConstraints:^(MASConstraintMaker *make) {
+            make.top.left.equalTo(self.contentView).offset(10);
+            make.right.bottom.equalTo(self.contentView).offset(-10);
+            
+        }];
+    }
+    return self;
+}
+
+- (UIImageView *)imageView {
+    if (!_imageView) {
+        _imageView = [[UIImageView alloc] init];
+        _imageView.contentMode = UIViewContentModeScaleToFill;
+    }
+    return _imageView;
+}
+
+@end
+

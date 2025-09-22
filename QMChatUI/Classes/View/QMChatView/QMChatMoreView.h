@@ -8,20 +8,37 @@
 #import <UIKit/UIKit.h>
 
 NS_ASSUME_NONNULL_BEGIN
+typedef enum : NSUInteger {
+    QMChatMoreModePicture = 200,
+    QMChatMoreModeCamera,
+    QMChatMoreModeVideo,
+    QMChatMoreModeFile,
+    QMChatMoreModeQuestion,
+    QMChatMoreModeEvaluate
+} QMChatMoreMode;
+
+@protocol QMMoreViewDelegate <NSObject>
+
+- (void)moreViewSelectAcitonIndex:(QMChatMoreMode)index;
+
+@end
 
 @interface QMChatMoreView : UIView
 
-@property (nonatomic, strong) UIButton *takeCameraBtn; //拍照
-@property (nonatomic, strong) UIButton *takePicBtn; //取图片
-@property (nonatomic, strong) UIButton *takeFileBtn; //取文件
-@property (nonatomic, strong) UIButton *evaluateBtn; //评价
-@property (nonatomic, strong) UIButton *questionBtn; //常见问题
-@property (nonatomic, strong) UIButton *videoBtn; //视频
+@property (nonatomic, weak) id<QMMoreViewDelegate> delegate;
+
+- (void)refreshMoreBtn;
 
 @end
 
-@interface BottomTitleBtn : UIButton
+@interface QMChatMoreModel : NSObject
+
+@property (nonatomic, copy) NSString *name;
+@property (nonatomic, copy) NSString *image_name;
+@property (nonatomic, assign) QMChatMoreMode mode;
+
 
 @end
+
 
 NS_ASSUME_NONNULL_END

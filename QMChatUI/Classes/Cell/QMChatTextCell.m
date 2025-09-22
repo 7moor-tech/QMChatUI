@@ -8,8 +8,9 @@
 #import "QMChatTextCell.h"
 #import "MLEmojiLabel.h"
 #import "QMHeader.h"
+#import "QMChatQuoteView.h"
 @interface QMChatTextCell() <MLEmojiLabelDelegate>
-
+@property (nonatomic, strong) QMChatQuoteView *quoteView;
 @end
 
 @implementation QMChatTextCell {
@@ -33,8 +34,15 @@
     _textLabel.customEmojiBundleName = @"QMEmoticon.bundle";
     [self.chatBackgroundView addSubview:_textLabel];
     
-    [_textLabel mas_makeConstraints:^(MASConstraintMaker *make) {
+    [self.chatBackgroundView addSubview:self.quoteView];
+    [self.quoteView mas_makeConstraints:^(MASConstraintMaker *make) {
         make.top.equalTo(self.chatBackgroundView).offset(2.5).priority(999);
+        make.left.equalTo(self.chatBackgroundView).offset(8);
+        make.right.equalTo(self.chatBackgroundView).offset(-8);
+    }];
+    
+    [_textLabel mas_makeConstraints:^(MASConstraintMaker *make) {
+        make.top.equalTo(self.quoteView.mas_bottom).offset(2.5);
         make.left.equalTo(self.chatBackgroundView).offset(8);
         make.width.mas_greaterThanOrEqualTo(20).priority(999);
         make.right.equalTo(self.chatBackgroundView).offset(-8);
@@ -57,23 +65,75 @@
     else {
         _textLabel.textColor = [UIColor colorWithHexString:isDarkStyle ? QMColor_D4D4D4_text : QMColor_151515_text];
     }
-    _textLabel.text = message.message;
+    
+    if (message.isQuoteMsg) {
+        [self.quoteView setData:message.quoteContent.content];
+        _textLabel.text = [message.sendContent stringByRemovingPercentEncoding];
+        [self.quoteView setBackColor:[message.fromType isEqualToString:@"1"]];
+        [self updateQuoteView];
+    } else {
+        // 防止复用-回复布局
+        [self.quoteView setData:@""];
+        
+        _textLabel.text = message.message;
+        [self updateQuoteView];
+    }
+    
+}
+
+- (void)updateQuoteView {
+    if (self.message.isQuoteMsg) {
+        [self.quoteView mas_remakeConstraints:^(MASConstraintMaker *make) {
+            make.top.equalTo(self.chatBackgroundView).offset(4).priority(999);
+            make.left.equalTo(self.chatBackgroundView).offset(8);
+            make.right.equalTo(self.chatBackgroundView).offset(-8);
+        }];
+        [_textLabel mas_remakeConstraints:^(MASConstraintMaker *make) {
+            make.top.equalTo(self.quoteView.mas_bottom).offset(2.5);
+            make.left.equalTo(self.chatBackgroundView).offset(8);
+            make.width.mas_greaterThanOrEqualTo(20).priority(999);
+            make.right.equalTo(self.chatBackgroundView).offset(-8);
+            make.bottom.equalTo(self.chatBackgroundView).offset(-2.5).priority(999);
+            make.height.mas_greaterThanOrEqualTo(40).priorityHigh();
+        }];
+    } else {
+        [self.quoteView mas_remakeConstraints:^(MASConstraintMaker *make) {
+            make.top.equalTo(self.chatBackgroundView).offset(0).priority(999);
+            make.height.mas_equalTo(0);
+        }];
+        
+        [_textLabel mas_remakeConstraints:^(MASConstraintMaker *make) {
+            make.top.equalTo(self.chatBackgroundView).offset(2.5).priority(999);
+            make.left.equalTo(self.chatBackgroundView).offset(8);
+            make.width.mas_greaterThanOrEqualTo(20).priority(999);
+            make.right.equalTo(self.chatBackgroundView).offset(-8);
+            make.bottom.equalTo(self.chatBackgroundView).offset(-2.5).priority(999);
+            make.height.mas_greaterThanOrEqualTo(40).priorityHigh();
+        }];
+    }
 }
 
 - (void)longPressTapGesture:(UILongPressGestureRecognizer *)sender {
     if (sender.state == UIGestureRecognizerStateBegan) {
         [self becomeFirstResponder];
+        CGPoint point = [sender locationInView:self.chatBackgroundView];
+        
         UIMenuController *menu = [UIMenuController sharedMenuController];
         UIMenuItem *copyMenu = [[UIMenuItem alloc] initWithTitle:QMUILocalizableString(button.copy)  action:@selector(copyMenu:)];
         UIMenuItem *removeMenu = [[UIMenuItem alloc] initWithTitle:QMUILocalizableString(button.delete) action:@selector(removeMenu:)];
-        [menu setMenuItems:[NSArray arrayWithObjects:copyMenu,removeMenu, nil]];
-        [menu setTargetRect:self.chatBackgroundView.frame inView:self];
-        [menu setMenuVisible:true animated:true];
+        if ([self.message.fromType isEqualToString:@"0"]) {
+            [menu setMenuItems:[NSArray arrayWithObjects:copyMenu,removeMenu, nil]];
+        }
+        else {
+            [menu setMenuItems:[NSArray arrayWithObjects:copyMenu, nil]];
+        }
         
-        UIWindow *window = [[[UIApplication sharedApplication] delegate] window];
-        if ([window isKeyWindow] == NO) {
-            [window becomeKeyWindow];
-            [window makeKeyAndVisible];
+        CGRect frame = CGRectMake(point.x - 25, point.y, 50, 20);
+        if (@available(iOS 13, *)) {
+            [menu showMenuFromView:self rect:self.chatBackgroundView.frame];
+        } else {
+            [menu setTargetRect:frame inView:self];
+            [menu setMenuVisible:YES];
         }
     }
 }
@@ -113,14 +173,6 @@
     [[UIApplication sharedApplication].keyWindow.rootViewController presentViewController:alertController animated:YES completion:nil];
 }
 
-- (void)helpBtnAction: (UIButton *)sender {
-    self.didBtnAction(YES);
-}
-
-- (void)noHelpBtnAction: (UIButton *)sender {
-    self.didBtnAction(NO);
-}
-
 - (void)mlEmojiLabel:(MLEmojiLabel *)emojiLabel didSelectLink:(NSString *)link withType:(MLEmojiLabelLinkType)type {
     if (type == MLEmojiLabelLinkTypePhoneNumber) {
         if (link) {
@@ -133,6 +185,12 @@
     }
 }
 
+- (QMChatQuoteView *)quoteView {
+    if (!_quoteView) {
+        _quoteView = [QMChatQuoteView new];
+    }
+    return _quoteView;
+}
 
 - (void)awakeFromNib {
     [super awakeFromNib];

@@ -114,7 +114,7 @@
         //接收方
         [self.chatBackgroundView mas_updateConstraints:^(MASConstraintMaker *make) {
             make.right.lessThanOrEqualTo(self.contentView.mas_right).offset(-23);
-            make.left.equalTo(self.contentView).offset(67).priorityHigh();
+            make.left.equalTo(self.contentView).offset(kChatLeftAndRightWidth).priorityHigh();
         }];
     }
     

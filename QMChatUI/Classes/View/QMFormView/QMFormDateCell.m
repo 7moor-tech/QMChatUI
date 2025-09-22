@@ -8,7 +8,9 @@
 #import "QMFormDateCell.h"
 #import "QMFormDateView.h"
 #import "QMHeader.h"
-@interface QMFormDateCell ()
+#import "Masonry.h"
+#import <FQDateTimePicker/FQDateTimePicker.h>
+@interface QMFormDateCell ()<FQDateTimePickerViewDelegate>
 
 @property (nonatomic, strong) UIButton *selectButton;
 
@@ -19,6 +21,8 @@
 @property (nonatomic, strong) NSDictionary *dataDic;
 
 @property (nonatomic, strong) QMFormDateView *dateView;
+
+@property (nonatomic, strong) FQDateTimePickerView *pickerView;
 
 @end
 
@@ -107,29 +111,67 @@
 }
 
 - (void)selectAction {
+    [self.superview endEditing:YES];
     NSString *value = self.dataDic[@"value"];
     value = value.length ? value : @"";
-    @weakify(self)
-    _dateView = [QMFormDateView showDateChooseViewWithDefaultDate:value dateFormat:@"" finishedBlock:^(NSString * _Nonnull date) {
-        @strongify(self)
-        dispatch_async(dispatch_get_main_queue(), ^{
-            NSMutableDictionary *newDic = self.dataDic.mutableCopy;
-            if (date.length) {
-                [newDic setValue:date forKey:@"value"];
-            }
-            [self setModel:newDic];
-            self.baseSelectValue(newDic);
-        });
-        NSLog(@"finishedBlock===%@", date);
-    } cancelBlock:^{
-        
-    }];
+//    @weakify(self)
+//    _dateView = [QMFormDateView showDateChooseViewWithDefaultDate:value dateFormat:@"" finishedBlock:^(NSString * _Nonnull date) {
+//        @strongify(self)
+//        dispatch_async(dispatch_get_main_queue(), ^{
+//            NSMutableDictionary *newDic = self.dataDic.mutableCopy;
+//            if (date.length) {
+//                [newDic setValue:date forKey:@"value"];
+//            }
+//            [self setModel:newDic];
+//            self.baseSelectValue(newDic);
+//        });
+//        
+//    } cancelBlock:^{
+//        
+//    }];
     
+    _pickerView = [[FQDateTimePickerView alloc] init];
+    _pickerView.delegate = self;    //遵循代理
+    _pickerView.pickerModel = 3;
+    _pickerView.defaultDate = [self stringToDate:value format:@"yyyy-MM-dd HH:mm:ss"];
+    [_pickerView showPicker];
     [[UIApplication sharedApplication].keyWindow addSubview:_dateView];
     [_dateView mas_makeConstraints:^(MASConstraintMaker *make) {
         make.edges.equalTo([UIApplication sharedApplication].keyWindow);
     }];
     
+}
+
+- (void)confirmActionFQDateTimePicker:(FQDateTimePickerView *)pickerView WithDate:(NSDate *)date withDateString:(NSString *)dateStr {
+//    if ([date compare:[NSDate date]] == NSOrderedAscending) {
+        NSMutableDictionary *newDic = self.dataDic.mutableCopy;
+        if (dateStr.length) {
+            [newDic setValue:dateStr forKey:@"value"];
+        }
+        [self setModel:newDic];
+        self.baseSelectValue(newDic);
+//    }else{
+//        [QMRemind showMessage:@"选择的时间不能大于当前时间！"];
+//    }
+    
+}
+
+- (void)cancelActionFQDateTimePicker:(FQDateTimePickerView *)pickerView {
+//    NSLog(@"wuwuFQ：cancelAction");
+}
+
+- (void)scrollActionFQDateTimePicker:(FQDateTimePickerView *)pickerView WithDate:(NSDate *)date withDateString:(NSString *)dateStr {
+//    NSLog(@"wuwuFQ：%@---%@", date, dateStr);
+}
+
+- (NSDate *)stringToDate:(NSString *)dateString format:(NSString *)format {
+    if (!dateString.length) {
+        return nil;
+    }
+    NSDateFormatter *dateFormatter = [[NSDateFormatter alloc] init];
+    [dateFormatter setDateFormat:format];
+    NSDate *dateFormatted = [dateFormatter dateFromString:dateString];
+    return dateFormatted;
 }
 
 

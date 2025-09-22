@@ -81,7 +81,7 @@
     [super setData:message avater:avater];
     
     self.message = message;
-    
+    self.sendStatus.hidden = YES;
     [self setDarkStyle];
 
     if ([message.messageType isEqualToString:@"card"]) {
@@ -117,8 +117,8 @@
         NSString *imgUrl = newCardInfoDic[@"img"];
         if (imgUrl && [imgUrl stringByRemovingPercentEncoding] == imgUrl) {
             imgUrl = [imgUrl stringByAddingPercentEncodingWithAllowedCharacters:[NSCharacterSet URLQueryAllowedCharacterSet]];
+            [_imageView sd_setImageWithURL:[NSURL URLWithString:imgUrl]];
         }
-        [_imageView sd_setImageWithURL:[NSURL URLWithString:imgUrl]];
         _headerLabel.numberOfLines = 1;
         _headerLabel.text = newCardInfoDic[@"title"];
 

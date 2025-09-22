@@ -33,9 +33,10 @@
 
 - (void)createUI {
     [super createUI];
+
     
     flowView = [[QMChatFlowView alloc] init];
-    flowView.frame = CGRectMake(67, CGRectGetMaxY(self.timeLabel.frame)+25, 260, 300);
+    flowView.frame = CGRectMake(kChatLeftAndRightWidth, CGRectGetMaxY(self.timeLabel.frame)+25, 260, 300);
     flowView.layer.masksToBounds = YES;
     flowView.layer.cornerRadius = 8;
     [self.contentView addSubview:flowView];
@@ -193,10 +194,10 @@
     CGFloat btnWidth = [QMLabelText calculateTextWidth:@"哈确定" fontName:QM_PingFangTC_Sem fontSize:14 maxHeight:100];
     CGFloat numWidth = [QMLabelText calculateTextWidth:_sumLabel.text fontName:QM_PingFangTC_Sem fontSize:14 maxHeight:100] + 10;
     CGFloat width = btnWidth + numWidth;
-    _lineView.frame = CGRectMake(67+15, height, 230, 1);
+    _lineView.frame = CGRectMake(kChatLeftAndRightWidth+15, height, 230, 1);
     [UIView drawDashLine:_lineView lineLength:2 lineSpacing:2 lineColor:[UIColor colorWithHexString:@"#CACACA"]];
-    _doneBtn.frame = CGRectMake(67+130-width/2 , height + 13.5, btnWidth, 16);
-    _sumLabel.frame = CGRectMake(67+130-width/2+btnWidth, height + 13.5, numWidth, 16);
+    _doneBtn.frame = CGRectMake(kChatLeftAndRightWidth+130-width/2 , height + 13.5, btnWidth, 16);
+    _sumLabel.frame = CGRectMake(kChatLeftAndRightWidth+130-width/2+btnWidth, height + 13.5, numWidth, 16);
 }
 
 - (void)doneAction:(UIButton *)button {

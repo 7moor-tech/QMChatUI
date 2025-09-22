@@ -9,6 +9,7 @@
 #import "QMFileManagerController.h"
 #import <Photos/Photos.h>
 #import "QMHeader.h"
+#import "Masonry.h"
 #import "QMChatShowRichTextController.h"
 #import <QMLineSDK/QMLineSDK.h>
 
@@ -120,7 +121,7 @@
         _uploadButton.layer.borderColor = [UIColor colorWithHexString:@"#CACACA"].CGColor;
         _uploadButton.titleLabel.font = [UIFont fontWithName:QM_PingFangSC_Reg size:15];
         [_uploadButton setImage:[UIImage imageNamed:QMUIComponentImagePath(@"QMForm_upload")] forState:UIControlStateNormal];
-        [_uploadButton setTitle:@"选择文件 (50M 以内)" forState:UIControlStateNormal];
+        [_uploadButton setTitle:@"选择文件 (20M 以内)" forState:UIControlStateNormal];
         [_uploadButton setTitleColor:[UIColor colorWithHexString:QMColor_333333_text] forState:UIControlStateNormal];
         [_uploadButton setBackgroundColor:[UIColor colorWithHexString:QMColor_FFFFFF_text]];
         [_uploadButton setImageEdgeInsets:UIEdgeInsetsMake(0.0, -20, 0.0, 0.0)];
@@ -236,17 +237,17 @@
         
         UIButton *deleteBtn = [[UIButton alloc] init];
         deleteBtn.tag = 600 + i;
-        deleteBtn.layer.masksToBounds = YES;
-        deleteBtn.layer.cornerRadius = 7.5;
+//        deleteBtn.layer.masksToBounds = YES;
+//        deleteBtn.layer.cornerRadius = 7.5;
         [deleteBtn setImage:[UIImage imageNamed:QMUIComponentImagePath(@"QMForm_delete")] forState:UIControlStateNormal];
         [deleteBtn addTarget:self action:@selector(deleteAction:) forControlEvents:UIControlEventTouchUpInside];
         [self.coverView addSubview:deleteBtn];
         
         [deleteBtn mas_makeConstraints:^(MASConstraintMaker *make) {
-            make.top.equalTo(self.coverView).offset(50*i - 7.5);
+            make.top.equalTo(self.coverView).offset(50*i - 12);
 //            make.left.equalTo(self.coverView.mas_right).offset(-7.5);
-            make.left.equalTo(self.coverView.mas_right).offset(-9);
-            make.width.height.mas_equalTo(15);
+            make.left.equalTo(self.coverView.mas_right).offset(-17);
+            make.width.height.mas_equalTo(30);
         }];
 
     }
@@ -288,7 +289,7 @@
 
 - (void)deleteAction:(UIButton *)button {
 
-    NSLog(@"deleteButton");
+    
     NSInteger number = button.tag - 600;
     NSMutableArray *newArray = self.filelist.mutableCopy;
     if (self.filelist.count >= number) {
@@ -300,7 +301,7 @@
         NSString *value = self.dataDic[@"value"];
         if (value.length) {
             value = [value stringByReplacingOccurrencesOfString:str withString:@""];
-            NSLog(@"删除之后的value===%@",value);
+            
         }
         
         
@@ -334,6 +335,11 @@
                                 @"fileSize" : size,
                                 @"filePath" : path
                             };
+                            NSInteger size1 = [[size stringByReplacingOccurrencesOfString:@"MB" withString:@""] integerValue];
+                            if (size1 > 20) {
+                                [QMRemind showMessage:@"文件大小不能超过20M！"];
+                                return;
+                            }
                             [self UploadDataDicWithFile:dic];
                         });
                     };
@@ -344,8 +350,8 @@
                     
                     UIAlertAction *action = [UIAlertAction actionWithTitle:QMUILocalizableString(button.set) style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
                         if (UIApplicationOpenSettingsURLString != NULL) {
-                            NSURL *appSettings = [NSURL URLWithString:UIApplicationOpenSettingsURLString];
-                            [[UIApplication sharedApplication] openURL:appSettings];
+                            NSURL *URL = [NSURL URLWithString:UIApplicationOpenSettingsURLString];
+                            [[UIApplication sharedApplication] openURL:URL options:@{} completionHandler:nil];
                         }
                     }];
                     

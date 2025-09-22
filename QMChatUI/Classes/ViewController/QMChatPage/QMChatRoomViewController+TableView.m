@@ -21,13 +21,17 @@
 #import "QMChatCallCell.h"
 #import "QMChatCommonProblemCell.h"
 #import "QMChatFormCell.h"
+#import "QMWXCardCell.h"
 #import "QMChatLogistcsInfoCell.h"
 #import "QMChatRoomXbotCardCell.h"
 #import "QMChatListCardCell.h"
 #import "QMChatRobotReplyCell.h"
 #import "QMTipMessageCell.h"
 #import "QMHeader.h"
-
+#import "QMChatVideoCell.h"
+#import "QMChatRobotButtonCell.h"
+#import <AVFoundation/AVFoundation.h>
+#import <AVKit/AVKit.h>
 @implementation QMChatRoomViewController (TableView)
 
 #pragma mark ------- tableViewDelegate ---------
@@ -41,57 +45,71 @@
     if ([message.messageType isEqualToString:@"text"]) {
         if ([message.isRobot isEqualToString:@"1"]) {
             if ([message.isRobot isEqualToString:@"1"] && ![message.questionId isEqualToString:@""]) {
-                identifier = NSStringFromClass([QMChatRobotReplyCell class]);
+                identifier = NSStringFromClass([QMChatRobotReplyCell class]);//带机器人评价
             } else {
-                identifier = NSStringFromClass([QMChatRobotCell class]);
+                if ([message.contactPushed isEqualToString:@"1"]) {
+                    identifier = NSStringFromClass([QMChatRobotButtonCell class]);//获取二维码
+                } else {
+                    identifier = NSStringFromClass([QMChatRobotCell class]);
+                }
             }
+            
         }else if ([message.isRobot isEqualToString:@"2"]) {
             if ([message.robotFlowsStyle isEqualToString:@"2"]) {
                 identifier = NSStringFromClass([QMChatRobotCell class]);
             }else {
                 identifier = NSStringFromClass([QMChatRobotFlowCell class]);
             }
+        } else if (message.showHtml == YES) {
+            identifier = NSStringFromClass([QMChatRobotCell class]);//机器人消息
         }
         else {
-            identifier = NSStringFromClass([QMChatTextCell class]);
+            identifier = NSStringFromClass([QMChatTextCell class]);//文本消息
         }
     }else if ([message.messageType isEqualToString:@"image"]) {
-        identifier = NSStringFromClass([QMChatImageCell class]);
+        identifier = NSStringFromClass([QMChatImageCell class]);//图片消息
     }else if ([message.messageType isEqualToString:@"voice"]) {
-        identifier = NSStringFromClass([QMChatVoiceCell class]);
+        identifier = NSStringFromClass([QMChatVoiceCell class]);//语音消息
     }else if ([message.messageType isEqualToString:@"file"]) {
-        identifier = NSStringFromClass([QMChatFileCell class]);
+        NSString *fileName = message.fileName.pathExtension.lowercaseString;
+        if ([fileName isEqualToString:@"mov"]||[fileName isEqualToString:@"mp4"]||[fileName isEqualToString:@"m4v"]) {
+            identifier = NSStringFromClass([QMChatVideoCell class]);//视频消息
+        }else if ([fileName isEqualToString:@"png"]||[fileName isEqualToString:@"jpg"]||[fileName isEqualToString:@"bmp"]||[fileName isEqualToString:@"jpeg"]||[fileName isEqualToString:@"heic"]||[fileName isEqualToString:@"webp"]||[fileName isEqualToString:@"gif"]) {
+            identifier = NSStringFromClass([QMChatImageCell class]);
+        } else {
+            identifier = NSStringFromClass([QMChatFileCell class]);//文件消息
+        }
     }else if ([message.messageType isEqualToString:@"card"]) {
-        identifier = NSStringFromClass([QMChatCardCell class]);
+        identifier = NSStringFromClass([QMChatCardCell class]);//普通卡片
     }else if ([message.messageType isEqualToString:@"cardInfo"]) {
-        identifier = NSStringFromClass([QMChatRichTextCell class]);
+        identifier = NSStringFromClass([QMChatRichTextCell class]);//消息卡片链接(富文本)
     }else if ([message.messageType isEqualToString:@"richText"]) {
-        identifier = NSStringFromClass([QMChatRichTextCell class]);
+        identifier = NSStringFromClass([QMChatRichTextCell class]);//知识库富文本
     }else if ([message.messageType isEqualToString:@"withdrawMessage"]) {
-        identifier = NSStringFromClass([QMTipMessageCell class]);
+        identifier = NSStringFromClass([QMTipMessageCell class]);//撤回消息
     }else if ([message.messageType isEqualToString:@"cardInfo_New"]) {
-        identifier = NSStringFromClass([QMChatCardCell class]);
+        identifier = NSStringFromClass([QMChatCardCell class]); //带发送按钮的卡片
     }else if ([message.messageType isEqualToString:@"newCardInfo"]) {
-        identifier = NSStringFromClass([QMChatNewCardCell class]);
+        identifier = NSStringFromClass([QMChatNewCardCell class]);//卡片消息展示
     }else if ([message.messageType isEqualToString:@"video"]) {
-        identifier = NSStringFromClass([QMChatCallCell class]);
+        identifier = NSStringFromClass([QMChatCallCell class]);//视频消息
     }else if ([message.messageType isEqualToString:@"evaluate"]) {
-        identifier = NSStringFromClass([QMChatNoteCell class]);
+        identifier = NSStringFromClass([QMChatNoteCell class]);//评价展示
     }else if ([message.messageType isEqualToString:@"NewPushQues"]) {
-        identifier = NSStringFromClass([QMChatCommonProblemCell class]);
+        identifier = NSStringFromClass([QMChatCommonProblemCell class]);//常见问题
     }else if ([message.messageType isEqualToString:@"xbotForm"]) {
-        identifier = NSStringFromClass([QMChatFormCell class]);
+        identifier = NSStringFromClass([QMChatFormCell class]);//表单消息
     }else if ([message.messageType isEqualToString:@"xbotFormSubmit"]) {
         identifier = NSStringFromClass([QMChatTextCell class]);
     }else if ([message.messageType isEqualToString:@"msgTask"]) {
         NSDictionary *dic = message.cardMsg_NewDict;
         if ([dic[@"resp_type"] intValue] == 1) {
-            identifier = NSStringFromClass([QMChatLogistcsInfoCell class]);
+            identifier = NSStringFromClass([QMChatLogistcsInfoCell class]);//物流消息
         } else {
             identifier = NSStringFromClass([QMChatRoomXbotCardCell class]);
         }
     }else if ([message.messageType isEqualToString:@"listCard"]) {
-        identifier = NSStringFromClass([QMChatListCardCell class]);
+        identifier = NSStringFromClass([QMChatListCardCell class]);//流水布局的卡片消息
     }
     else{
         return UITableViewCell.new;
@@ -100,12 +118,10 @@
 //    QMLog(@"identifier = %@",identifier);
     
     QMChatBaseCell *cell = [tableView dequeueReusableCellWithIdentifier:identifier];
-    cell.selectionStyle = UITableViewCellSelectionStyleNone;
-    cell.selectedBackgroundView = [[UIView alloc] initWithFrame:cell.frame];
-    cell.selectedBackgroundView.backgroundColor = [UIColor clearColor];
     if (cell == nil) {
         cell = [self createCellWithClassName:identifier cellModel:message indexPath:indexPath];
     }
+    cell.selectionStyle = UITableViewCellSelectionStyleNone;
 
     if (indexPath.row>0) {
         CustomMessage * preMessage = self.dataArray[self.dataArray.count-indexPath.row];
@@ -149,8 +165,27 @@
                     [mutableArr replaceObjectAtIndex:idx withObject:model];
                     self.dataArray = mutableArr;
                     [self.chatTableView endUpdates];
+                    
+                    if (self.dataArray.count - 1 == indexPath.row) {
+                        [self.chatTableView scrollToRowAtIndexPath:indexPath atScrollPosition:UITableViewScrollPositionBottom animated:YES];
+
+                    }
                 }
             }];
+        };
+        
+        cell.contentStartEditBlock = ^(CGRect frameToView) {
+            @strongify(self)
+            
+            //判断键盘弹出是否会遮挡当前编辑cell
+            NSInteger offSet = frameToView.origin.y + frameToView.size.height - (self.view.frame.size.height - self.keyBoardFrame.size.height);
+            
+            if (offSet > 1) {
+                offSet += self.lastContentOffset.y;
+                [UIView animateWithDuration:0.4 animations:^{
+                    self.chatTableView.contentOffset = CGPointMake(0, offSet);
+                }];
+            }
         };
     }
     
@@ -161,8 +196,7 @@
             }
 
             NSString *str = [address stringByRemovingPercentEncoding];
-            NSCharacterSet *character = [[NSCharacterSet characterSetWithCharactersInString:@"{}"] invertedSet];
-            address = [str stringByAddingPercentEncodingWithAllowedCharacters:character];
+            address = [str stringByAddingPercentEncodingWithAllowedCharacters:[NSCharacterSet URLQueryAllowedCharacterSet]];
             NSURL *uRL = [NSURL URLWithString:address];
             [[UIApplication sharedApplication] openURL:uRL options:@{} completionHandler:nil];
         };
@@ -210,17 +244,18 @@
                     [self sendText:text];
                 }
             }else {
-                if (self.isRobot) {
+                if (self.KFStatus == QMKFStatusRobot) {
                     [self sendText:text];
                 }
             }
         };
 
-        cell.didBtnAction = ^(BOOL isUseful) {
+        cell.didBtnAction = ^(BOOL isUseful, NSString * _Nonnull tag, NSString * _Nonnull remark) {
             @strongify(self)
             if (!message.isUseful||
                 [message.isUseful isEqualToString:@"none"]) {
-
+                message.tagStr = tag;
+                message.remark = remark;
                 if ([message.robotType isEqualToString:@"xbot"]) {
                     [self sendXbotRobotFeedback:isUseful message:message];
                 }else{
@@ -229,18 +264,34 @@
             }
         };
         
+        cell.switchRobotAction = ^(NSString * _Nonnull robotId) {
+            @strongify(self)
+            if (self.KFStatus == QMKFStatusRobot) {
+                [self switchRobot:robotId];
+            } else {
+                [QMRemind showMessage:QMUILocalizableString(not supported)];
+            }
+        };
+        
         cell.tapArtificialAction = ^(NSString *number) {
-            [QMConnect sdkConvertManualWithPeerId:number successBlock:^{
-                QMLog(@"转人工成功");
-            } failBlock:^{
-                QMLog(@"转人工失败");
-            }];
+            @strongify(self)
+            if (self.KFStatus == QMKFStatusRobot) {
+                [QMConnect sdkConvertManualWithPeerId:number convertType:@"13" successBlock:^{
+    //                QMLog(@"转人工成功--13");
+                    [self createNSTimer];
+                } failBlock:^(NSString *reason){
+                    QMLog(@"转人工失败");
+                }];
+            } else {
+                [QMRemind showMessage:QMUILocalizableString(not supported)];
+            }
+            
         };
         
     }else if ([message.messageType isEqualToString:@"text"] && [message.isRobot isEqualToString:@"2"]) {
         cell.tapSendMessage = ^(NSString *text, NSString *num) {
             @strongify(self)
-            if (self.isRobot) {
+            if (self.KFStatus == QMKFStatusRobot) {
                 if ([message.robotFlowType isEqualToString:@"button"]) {
                     NSMutableArray * arr = [QMLabelText dictionaryWithJsonString:message.robotFlowList];
                     if (![num isEqualToString:@""]) {
@@ -319,14 +370,12 @@
                
                 if ([obj._id isEqualToString:message._id]) {
                     *stop = YES;
-                    [self.chatTableView beginUpdates];
-                    obj.common_selected_index = strIndex;
-                    [QMConnect sdkChangeCommonProblemIndex:strIndex withMessageID:message._id];
-                    [self.chatTableView endUpdates];
-//                    dispatch_async(dispatch_get_main_queue(), ^{
-//                        NSIndexPath *indexPath = [NSIndexPath indexPathForRow:self.dataArray.count - idx - 1 inSection:0];
-//                        [self.chatTableView reloadRowsAtIndexPaths:@[indexPath] withRowAnimation:UITableViewRowAnimationNone];
-//                    });
+                    dispatch_async(dispatch_get_main_queue(), ^{
+                        [self.chatTableView beginUpdates];
+                        obj.common_selected_index = strIndex;
+                        [QMConnect sdkChangeCommonProblemIndex:strIndex withMessageID:message._id];
+                        [self.chatTableView endUpdates];
+                    });
                 }
             }];
             
@@ -334,14 +383,14 @@
         
         cell.tapSendMessage = ^(NSString * _Nonnull message, NSString * _Nonnull number) {
             @strongify(self)
-            if (self.isRobot) {
+            if (self.KFStatus == QMKFStatusRobot) {
                 [self sendText:message];
             }
         };
     }
     
     if ([message.messageType isEqualToString:@"xbotForm"]) {
-        cell.didBtnAction = ^(BOOL isbool) {
+        cell.didBtnAction = ^(BOOL isUseful, NSString * _Nonnull tag, NSString * _Nonnull remark) {
             @strongify(self)
             dispatch_async(dispatch_get_main_queue(), ^{
                 [self hideKeyboard];
@@ -360,7 +409,38 @@
             });
         };
     }
+    
+    if ([cell isKindOfClass:[QMChatVideoCell class]]) {
+        QMChatVideoCell *videoCell = (QMChatVideoCell *) cell;
+        videoCell.playerVideoAction = ^(NSString * url, NSString *filePath) {
+            @strongify(self)
+            [self pushVideoPalyer:url filePath:filePath];
+        };
+    }
+    
     return cell;
+}
+
+- (void)pushVideoPalyer:(NSString *)urlString filePath:(NSString *)filePath {
+    
+    [self.view endEditing:YES];
+    NSURL *url = nil;
+    if (filePath.length > 0) {
+        url = [NSURL fileURLWithPath:filePath];
+    } else if (urlString) {
+        url = [NSURL URLWithString:urlString];
+    }
+    if (url) {
+        //步骤2：创建AVPlayer
+        AVPlayer *avPlayer = [[AVPlayer alloc] initWithURL:url];
+        avPlayer.shouldGroupAccessibilityChildren = YES;
+        //步骤3：使用AVPlayer创建AVPlayerViewController，并跳转播放界面
+        AVPlayerViewController *avPlayerVC =[[AVPlayerViewController alloc] init];
+        avPlayerVC.player = avPlayer;
+        avPlayerVC.allowsPictureInPicturePlayback = YES;
+        [avPlayerVC.player play];
+        [self presentViewController:avPlayerVC animated:YES completion:nil];
+    }
 }
 
 - (void)showMoreView:(QMLogistcsInfoModel *)model {
@@ -475,6 +555,9 @@ static CGSize extracted(CustomMessage *message) {
             NSString *otherTitleOne = dic[@"other_title_one"];
             NSString *otherTitleTwo = dic[@"other_title_two"];
             NSString *otherTitleThree = dic[@"other_title_three"];
+            NSArray *tags = dic[@"tags"];
+            NSString *labelOne = tags.firstObject[@"label"];
+            NSString *labelTwo = tags.lastObject[@"label"];
             CGFloat otherHeight = 0;
             if (otherTitleOne.length > 0) {
                 otherHeight += 5 + 15;
@@ -488,14 +571,27 @@ static CGSize extracted(CustomMessage *message) {
             
             if (itemType.length > 0) {
                 height += 100;
-            }else {
-                if (otherHeight > 0) {
-                    height += 100 + otherHeight + 5 + 10;
-                }else {
+            }
+            else {
+                if (otherHeight > 0 ||
+                    tags.count > 0) {
+                    height += otherHeight + 12;
+                }
+                
+                if (tags.count > 0) {
+                    if (((labelOne.length > 4) ||
+                        (labelTwo.length > 4)) &&
+                        (tags.count != 1)) {
+                        height += 100 + 73;
+                    } else {
+                        height += 100 + 33;
+                    }
+                } else {
                     height += 100;
                 }
             }
         }
+//        return message.height.integerValue;
     }else if ([message.messageType isEqualToString:@"video"]) {
         return UITableViewAutomaticDimension;
     }else if ([message.messageType isEqualToString:@"evaluate"]) {
@@ -519,11 +615,11 @@ static CGSize extracted(CustomMessage *message) {
                     }
                 }
                 
-                NSArray *itemArray = [[NSArray alloc] init];
+                NSMutableArray *itemArray = [NSMutableArray array];
                 if (index.length) {
-                    itemArray = listArray[[index integerValue]];
+                    [itemArray addObjectsFromArray:listArray[[index integerValue]]];
                 }else {
-                    itemArray = listArray[0];
+                    [itemArray addObjectsFromArray:listArray[0]];
                 }
 
                 CGFloat answerHeight = itemArray.count > 5 ? 5 * 45 + 40 : itemArray.count * 45;
@@ -543,9 +639,12 @@ static CGSize extracted(CustomMessage *message) {
             if (dic.count) {
                 NSString *formPrompt = dic[@"formPrompt"];
                 NSString *formName = dic[@"formName"];
-                CGFloat promptHeight = [QMLabelText calculateTextHeight:formPrompt fontName:QM_PingFangSC_Reg fontSize:16 maxWidth:QM_kScreenWidth - 67*2 - 30];
-                CGFloat nameHeight = [QMLabelText calculateTextHeight:formName fontName:QM_PingFangSC_Reg fontSize:16 maxWidth:QM_kScreenWidth - 67*2 - 30];
+                CGFloat promptHeight = [QMLabelText calculateTextHeight:formPrompt fontName:QM_PingFangSC_Reg fontSize:16 maxWidth:QM_kScreenWidth - kChatLeftAndRightWidth*2 - 30];
+                CGFloat nameHeight = [QMLabelText calculateTextHeight:formName fontName:QM_PingFangSC_Reg fontSize:16 maxWidth:QM_kScreenWidth - kChatLeftAndRightWidth*2 - 30];
                 height += promptHeight + 20 + nameHeight + 30;
+                if(message.agentTipsSwitch == YES){
+                    height += 50;
+                }
             }else {
                 return 0;
             }
@@ -627,7 +726,7 @@ static CGSize extracted(CustomMessage *message) {
             }
             [self.chatTableView reloadData];
         });
-    } failBlock:^{
+    } failBlock:^(NSString *reason){
         
     }];
 }
@@ -646,9 +745,16 @@ static CGSize extracted(CustomMessage *message) {
             }
             [self.chatTableView reloadData];
         });
-    } failBlock:^{
+    } failBlock:^(NSString *reason){
         
     }];
+}
+
+- (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
+    UITableViewCell *row = [tableView cellForRowAtIndexPath:indexPath];
+    UIView *backview = [[UIView alloc] initWithFrame:row.frame];
+    backview.backgroundColor = [UIColor colorWithHexString:isDarkStyle ? QMColor_Main_Bg_Dark : QMColor_Main_Bg_Light];;
+    row.selectedBackgroundView = backview;
 }
 
 - (QMChatBaseCell *)createCellWithClassName:(NSString *)className

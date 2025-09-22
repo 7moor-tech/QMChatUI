@@ -92,6 +92,7 @@
     QMChatShowImageViewController * showPicVC = [[QMChatShowImageViewController alloc] init];
     showPicVC.imageUrl = self.message.message;
     showPicVC.image = self.showImageView.image;
+    showPicVC.modalPresentationStyle = UIModalPresentationFullScreen;
     [[UIApplication sharedApplication].keyWindow.rootViewController presentViewController:showPicVC animated:true completion:nil];
 }
 

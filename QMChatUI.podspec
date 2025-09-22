@@ -9,7 +9,7 @@
 
 Pod::Spec.new do |s|
   s.name             = 'QMChatUI'
-  s.version          = '0.5'
+  s.version          = '1.7.3'
   s.summary          = 'A short description of QMChatUI.'
 
 # This description is used to generate tags and improve search results.
@@ -22,27 +22,29 @@ Pod::Spec.new do |s|
 TODO: Add long description of the pod here.
                        DESC
 
-  s.homepage         = 'https://github.com/7moor-tech/QMChatUI'
+  s.homepage         = 'https://gitee.com/moor7_tech/QMChatUI'
   s.license          = { :type => 'MIT', :file => 'LICENSE' }
   s.author           = { '焦林生' => '18515384635@163.com' }
-  s.source           = { :git => 'https://github.com/7moor-tech/QMChatUI.git', :tag => s.version.to_s }
+  s.source           = { :git => 'https://gitee.com/moor7_tech/QMChatUI.git', :tag => s.version.to_s }
 
-  s.ios.deployment_target = '9.0'
+  s.ios.deployment_target = '12.0'
   
    s.static_framework = true
    s.requires_arc = true
    s.frameworks = 'UIKit'
-   s.dependency 'QMUIComponent', '~> 0.3'
-   s.dependency 'QMLineSDK'
+   s.dependency 'QMChatUICore', '~> 1.0.1'
+   s.dependency 'QMLineSDK', '~> 4.10.5'
+   s.dependency 'FQDateTimePicker', '~> 2.0.3'
    
   s.subspec 'Cell' do |cell|
-      cell.source_files = 'QMChatUI/Classes/Cell/*.{h,m}'
-      cell.dependency 'QMChatUI/Vendors'
-      cell.dependency 'QMChatUI/Models'
-     cell.dependency 'QMChatUI/View/CommonProblem'
-     cell.dependency 'QMChatUI/View/msgTask'
-     cell.dependency 'QMChatUI/View/QMFormView'
-     cell.dependency 'QMChatUI/ViewController/QMImageWithWebPage'
+    cell.source_files = 'QMChatUI/Classes/Cell/*.{h,m}'
+    cell.dependency 'QMChatUI/Vendors'
+    cell.dependency 'QMChatUI/Models'
+    cell.dependency 'QMChatUI/View/CommonProblem'
+    cell.dependency 'QMChatUI/View/msgTask'
+    cell.dependency 'QMChatUI/View/QMFormView'
+    cell.dependency 'QMChatUI/View/QMAudio'
+    cell.dependency 'QMChatUI/ViewController/QMImageWithWebPage'
   end
   
   s.subspec 'Models' do |model|
@@ -64,6 +66,12 @@ TODO: Add long description of the pod here.
     view.subspec 'CommonProblem' do |problem|
         problem.source_files = 'QMChatUI/Classes/View/CommonProblem/*.{h,m}'
     end
+    view.subspec 'QMAudio' do |audio|
+        audio.source_files = 'QMChatUI/Classes/View/QMAudio/*.{h,m}'
+    end
+    view.subspec 'QMFileManager' do |manager|
+      manager.source_files = "QMChatUI/Classes/View/QMFileManager/**/*.{h,m}"
+   end
     view.subspec 'msgTask' do |task|
         task.source_files = 'QMChatUI/Classes/View/msgTask/*.{h,m}'
         task.dependency 'QMChatUI/ViewController/QMImageWithWebPage'
@@ -73,11 +81,13 @@ TODO: Add long description of the pod here.
     view.subspec 'QMChatView' do |chatView|
         chatView.source_files = 'QMChatUI/Classes/View/QMChatView/*.{h,m}'
         chatView.dependency 'QMChatUI/ViewController/QMImageWithWebPage'
+        chatView.dependency 'QMChatUI/Models'
         chatView.dependency 'QMChatUI/Cell'
     end
     view.subspec 'QMFormView' do |formView|
         formView.source_files = 'QMChatUI/Classes/View/QMFormView/*.{h,m}'
         formView.dependency 'QMChatUI/ViewController/QMImageWithWebPage'
+        formView.dependency 'QMChatUI/View/QMFileManager'
     end
        
   end

@@ -85,7 +85,9 @@
 
 - (void)collectionView:(UICollectionView *)collectionView didSelectItemAtIndexPath:(NSIndexPath *)indexPath {
     NSDictionary *itemDic = self.listCards[indexPath.row];
-    
+    if (QMLoginManager.shared.KFStatus != QMKFStatusRobot) {
+        return;
+    }
     NSNumber *typeNum = itemDic[@"button_type"];
     if ([typeNum intValue] == 2) {
         QMChatShowRichTextController *showWebVC = [[QMChatShowRichTextController alloc] init];

@@ -8,6 +8,8 @@
 #import "QMFormCityView.h"
 #import "QMHeader.h"
 #import "Masonry.h"
+#import <Foundation/Foundation.h>
+#import <CommonCrypto/CommonCryptor.h>
 @interface QMFormCityView ()<UIPickerViewDelegate, UIPickerViewDataSource, UIGestureRecognizerDelegate>
 
 //picker控件数据源
@@ -147,7 +149,7 @@
 - (void)setModel:(NSDictionary *)model {
     self.dataDic = model;
     NSString *value = model[@"value"];
-    NSArray *newModel = @[@"",@"",@""];
+    NSArray *newModel = @[@"",@"",@"",@""];
     if (value.length) {
         newModel = [value componentsSeparatedByString:@"-"];
     }
@@ -155,13 +157,56 @@
 }
 
 -(void)createinitWith:(NSArray *)defaultValues {
-    //加载本地json数据
-    NSString *jsonPath = [QMTUIBundle(QMChatUIBundle) pathForResource:@"city" ofType:@"json"];
-    NSData *data = [[NSData alloc] initWithContentsOfFile:jsonPath];
-    NSError *error = nil;
-    NSArray *citysArr = [NSJSONSerialization JSONObjectWithData:data options:kNilOptions error:&error];
+    //加载本地json数据 新增加密数据
+    NSString *jsonPath = [QMTUIBundle(QMChatUIBundle) pathForResource:@"cityData" ofType:@"dat"];
+//    NSData *data = [[NSData alloc] initWithContentsOfFile:jsonPath];
+//    NSError *error = nil;
+//    NSArray *citysArr = [NSJSONSerialization JSONObjectWithData:data options:kNilOptions error:&error];
     //初始化源数据
+    NSString *encryptionKey = @"7moor";
+//    [self storeEncryptedJSON:citysArr withKey:encryptionKey];
+    NSArray *citysArr = [self loadDecryptedJSONWithKey:encryptionKey jsonPath:jsonPath];
     [self defaultShowValue:[NSMutableArray arrayWithArray:defaultValues] items:citysArr];
+}
+
+// 从文件中读取并解密 JSON 数据
+- (NSArray *)loadDecryptedJSONWithKey:(NSString *)key jsonPath:(NSString *)jsonPath {
+//    NSString *jsonPath = [NSBundle.mainBundle pathForResource:@"cityData" ofType:@"dat"];
+    NSData *encryptedData = [NSData dataWithContentsOfFile:jsonPath];
+    if (encryptedData) {
+        NSData *decryptedData = [self decryptData:encryptedData withKey:key];
+        if (decryptedData) {
+            NSError *error;
+            NSArray *citysArr = [NSJSONSerialization JSONObjectWithData:decryptedData options:kNilOptions error:&error];
+            if (!error) {
+                return citysArr;
+            }
+        }
+    }
+    return nil;
+}
+
+// 解密方法
+- (NSData *)decryptData:(NSData *)data withKey:(NSString *)key {
+    char keyPtr[kCCKeySizeAES256 + 1];
+    bzero(keyPtr, sizeof(keyPtr));
+    [key getCString:keyPtr maxLength:sizeof(keyPtr) encoding:NSUTF8StringEncoding];
+    NSUInteger dataLength = [data length];
+    size_t bufferSize = dataLength + kCCBlockSizeAES128;
+    void *buffer = malloc(bufferSize);
+    size_t numBytesDecrypted = 0;
+    CCCryptorStatus cryptStatus = CCCrypt(kCCDecrypt, kCCAlgorithmAES128,
+                                          kCCOptionPKCS7Padding,
+                                          keyPtr, kCCKeySizeAES256,
+                                          NULL /* initialization vector (optional) */,
+                                          [data bytes], dataLength,
+                                          buffer, bufferSize,
+                                          &numBytesDecrypted);
+    if (cryptStatus == kCCSuccess) {
+        return [NSData dataWithBytesNoCopy:buffer length:numBytesDecrypted];
+    }
+    free(buffer);
+    return nil;
 }
 
 -(void)defaultShowValue:(NSMutableArray *)values items:(NSArray *)items {
@@ -175,7 +220,7 @@
             [self defaultShowValue:values items:obj[@"children"]];
             
         }
-        else if ([obj[@"label"] isEqualToString:[values firstObject]])
+        else if ([obj[@"name"] isEqualToString:[values firstObject]])
         {
             [self.showIndexs addObject:@(idx)];
             [values removeObjectAtIndex:0];
@@ -209,10 +254,11 @@
             [resultArr addObject:selectedItem];
         }];
         
-        NSString *province = [resultArr objectAtIndex:0][@"label"];
-        NSString *city = [resultArr objectAtIndex:1][@"label"];
-        NSString *county = [resultArr objectAtIndex:2][@"label"];
-        NSString *value = [NSString stringWithFormat:@"%@-%@-%@",province,city,county];
+        NSString *province = [resultArr objectAtIndex:0][@"name"];
+        NSString *city = [resultArr objectAtIndex:1][@"name"];
+        NSString *county = [resultArr objectAtIndex:2][@"name"];
+        NSString *street = [resultArr objectAtIndex:3][@"name"];
+        NSString *value = [NSString stringWithFormat:@"%@-%@-%@-%@",province,city,county,street];
 
         NSMutableDictionary *newDic = self.dataDic.mutableCopy;
         [newDic setValue:value forKey:@"value"];
@@ -260,7 +306,7 @@
         label.textAlignment = NSTextAlignmentCenter;
         label.textColor = [UIColor blackColor];
         NSDictionary *dic = [[self.showAddressArr objectAtIndex:component] objectAtIndex:row];
-        label.text = dic[@"label"];
+        label.text = dic[@"name"];
     }
     return label;
 }
@@ -303,6 +349,5 @@
         [self.pickerView selectRow:[[self.showIndexs objectAtIndex:index] integerValue] inComponent:index animated:NO];
     }
 }
-
 
 @end

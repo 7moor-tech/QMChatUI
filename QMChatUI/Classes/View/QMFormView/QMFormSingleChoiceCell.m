@@ -8,6 +8,7 @@
 #import "QMFormSingleChoiceCell.h"
 #import "QMFormSingleChoiceView.h"
 #import "QMHeader.h"
+#import "Masonry.h"
 @interface QMFormSingleChoiceCell ()
 
 @property (nonatomic, strong) UIButton *selectButton;

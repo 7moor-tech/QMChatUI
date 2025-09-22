@@ -120,30 +120,33 @@
       
         if ([message.status isEqualToString:@"0"] &&
             [QMPushManager share].isOpenRead) {
-            if ([message.isRead isEqualToString:@"1"]) {
-                self.readStatus.hidden = NO;
-                self.readStatus.text = @"已读";
-            }else if ([message.isRead isEqualToString:@"0"]) {
-                self.readStatus.hidden = NO;
-                self.readStatus.text = @"未读";
-            }else {
-                self.readStatus.hidden = YES;
-            }
+            
             [self.readStatus mas_makeConstraints:^(MASConstraintMaker *make) {
                 make.right.equalTo(self.chatBackgroundView.mas_left).offset(-QMFixWidth(5));
                 make.bottom.equalTo(self.chatBackgroundView.mas_bottom).offset(-5);
                 make.size.mas_equalTo(CGSizeMake(QMFixWidth(25), 17));
             }];
+            
+            [self setMessageIsRead:message.isRead];
         }
         self.chatBackgroundView.backgroundColor = [UIColor colorWithHexString:QMColor_News_Custom];
     }else {
         //接收
-        if ([message.userType isEqualToString:@"system"]) {
-            [self.iconImage sd_setImageWithURL:[NSURL URLWithString:[QMConnect sdkSystemMessageIcon]] placeholderImage:[UIImage imageNamed:QMChatUIImagePath(@"qm_default_robot")]];
-        }else {
+        if ([message.agentIcon hasPrefix:@"http"]) {
+            NSString *url = [message.agentIcon stringByAddingPercentEncodingWithAllowedCharacters:[NSCharacterSet URLQueryAllowedCharacterSet]];
             if ([NSURL URLWithString:message.agentIcon]) {
-                [self.iconImage sd_setImageWithURL:[NSURL URLWithString:message.agentIcon] placeholderImage:[UIImage imageNamed:QMChatUIImagePath(@"qm_default_agent")]];
-            }else {
+                [self.iconImage sd_setImageWithURL:[NSURL URLWithString:url] placeholderImage:[UIImage imageNamed:QMChatUIImagePath(@"qm_default_agent")]];
+            } else {
+                if (url.length > 0) {
+                    [self.iconImage sd_setImageWithURL:[NSURL URLWithString:url] placeholderImage:[UIImage imageNamed:QMChatUIImagePath(@"qm_default_agent")]];
+                }
+                    
+            }
+        } else {
+            if ([message.userType isEqualToString:@"system"]) {
+                NSString *url = [[QMConnect sdkSystemMessageIcon] stringByAddingPercentEncodingWithAllowedCharacters:[NSCharacterSet URLQueryAllowedCharacterSet]];
+                [self.iconImage sd_setImageWithURL:[NSURL URLWithString:url] placeholderImage:[UIImage imageNamed:@"qm_default_robot"]];
+            } else {
                 if ([message.isRobot isEqualToString:@"1"]) {
                     self.iconImage.image = [UIImage imageNamed:QMChatUIImagePath(@"qm_default_robot")];
                 }else {
@@ -165,7 +168,6 @@
             make.height.mas_greaterThanOrEqualTo(QMChatTextMinHeight).priority(999);
         }];
         self.chatBackgroundView.backgroundColor = [UIColor colorWithHexString:isDarkStyle ? QMColor_News_Agent_Dark : QMColor_News_Agent_Light];
-        self.sendStatus.hidden = YES;
     }
     
     if ([message.fromType isEqualToString:@"0"]) {
@@ -179,10 +181,34 @@
             self.sendStatus.hidden = NO;
             self.sendStatus.image = [UIImage imageNamed:QMChatUIImagePath(@"icon_sending")];
             [self showSendingAnimation];
-            [[NSNotificationCenter defaultCenter] removeObserver:self]; // 防止cell重用已监听其他id
-            [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(progressChange:) name:message._id object:nil];
+            [self pictureProgressChangeNotifcation];
+        }
+    } else {
+        self.sendStatus.hidden = YES;
+        if ([message.downloadState isEqualToString:@"2"]) {
+            [self pictureProgressChangeNotifcation];
         }
     }
+}
+
+- (void)setMessageIsRead:(NSString *)isRead {
+    
+    if ([isRead isEqualToString:@"1"]) {
+        self.readStatus.hidden = NO;
+        self.readStatus.text = @"已读";
+    }else if ([isRead isEqualToString:@"0"]) {
+        self.readStatus.hidden = NO;
+        self.readStatus.text = @"未读";
+    }else {
+        self.readStatus.hidden = YES;
+        self.readStatus.text = @"";
+    }
+}
+
+- (void)pictureProgressChangeNotifcation {
+    // 防止cell重用已监听其他id
+    [[NSNotificationCenter defaultCenter] removeObserver:self];
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(progressChange:) name:self.message._id object:nil];
 }
 
 - (void)progressChange:(NSNotification *)notfi {
@@ -217,10 +243,6 @@
 }
 
 - (void)reSendAction: (UITapGestureRecognizer *)gesture {
-    if ([QMPushManager share].isFinish == YES) {
-        [[NSNotificationCenter defaultCenter] postNotificationName:CUSTOMSRV_FINISH object:@"tapAction"];
-        return;
-    }
     
     UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"" message:QMUILocalizableString(button.sendAgain) preferredStyle:UIAlertControllerStyleAlert];
     UIAlertAction * doneAction = [UIAlertAction actionWithTitle:QMUILocalizableString(button.sure) style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {

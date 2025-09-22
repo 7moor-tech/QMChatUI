@@ -72,7 +72,7 @@
     self.dataDic = model;
     self.dataSource = model[@"select"];
     
-    CGFloat viewHeight = self.dataSource.count * 45;
+    CGFloat viewHeight = 5 * 45;
     [self.coverView mas_remakeConstraints:^(MASConstraintMaker *make) {
         make.top.left.right.equalTo(self);
         make.height.mas_equalTo(viewHeight);

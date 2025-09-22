@@ -40,41 +40,10 @@
     
     _contentLabel = [[UILabel alloc] init];
     _contentLabel.numberOfLines = 0;
-    _contentLabel.textAlignment = NSTextAlignmentCenter;
+    _contentLabel.textAlignment = NSTextAlignmentLeft;
     _contentLabel.font = [UIFont fontWithName:QM_PingFangSC_Reg size:13];
     [_coverView addSubview:_contentLabel];
     
-}
-
-- (void)layoutSubviews {
-    [super layoutSubviews];
-    
-    [_coverView mas_makeConstraints:^(MASConstraintMaker *make) {
-        make.left.mas_equalTo(kChatLeftAndRightWidth);
-        make.width.mas_equalTo(QMChatTextMaxWidth);
-        make.top.equalTo(self.contentView).offset(20).priority(999);
-        make.bottom.equalTo(self.contentView).offset(-10).priority(999);
-    }];
-        
-    [_titleLabel mas_makeConstraints:^(MASConstraintMaker *make) {
-        make.top.equalTo(self.coverView.mas_top).offset(20).priority(999);
-        make.centerX.equalTo(self.coverView);
-    }];
-    
-    [_sendButton mas_makeConstraints:^(MASConstraintMaker *make) {
-        make.top.equalTo(self.titleLabel.mas_bottom).offset(15);
-        make.centerX.equalTo(self.coverView);
-        make.width.mas_equalTo(QMFixWidth(100));
-        make.height.mas_equalTo(25);
-        make.bottom.equalTo(self.coverView.mas_bottom).offset(-15);
-    }];
-    
-    [_contentLabel mas_makeConstraints:^(MASConstraintMaker *make) {
-        make.centerX.equalTo(self.coverView);
-        make.top.equalTo(self.titleLabel.mas_bottom).offset(15);
-        make.bottom.equalTo(self.coverView.mas_bottom).offset(-15);
-    }];
-
 }
 
 - (void)setData:(CustomMessage *)message avater:(NSString *)avater {
@@ -94,6 +63,12 @@
         make.bottom.equalTo(self.contentView).offset(-10).priority(999);
     }];
     
+    [_titleLabel mas_makeConstraints:^(MASConstraintMaker *make) {
+        make.top.equalTo(self.coverView.mas_top).offset(20).priority(999);
+        make.centerX.equalTo(self.coverView);
+    }];
+
+    
     if ([message.evaluateStatus isEqualToString:@"2"]) {
         _titleLabel.text = QMUILocalizableString(感谢您对本次服务做出评价);
         _sendButton.hidden = YES;
@@ -102,7 +77,15 @@
         [_contentLabel mas_remakeConstraints:^(MASConstraintMaker *make) {
             make.centerX.equalTo(self.coverView);
             make.top.equalTo(self.titleLabel.mas_bottom).offset(15).priority(999);
+            make.left.equalTo(self.coverView).offset(10);
+            make.right.equalTo(self.coverView).offset(-10);
             make.bottom.equalTo(self.coverView.mas_bottom).offset(-15).priority(999);
+        }];
+        
+        [_sendButton mas_remakeConstraints:^(MASConstraintMaker *make) {
+            make.top.equalTo(self.titleLabel.mas_bottom).offset(15).priority(999);
+            make.centerX.equalTo(self.coverView);
+            make.width.mas_equalTo(QMFixWidth(100));
         }];
     } else if ([message.evaluateStatus isEqualToString:@"0"] ||
                [message.evaluateStatus isEqualToString:@"1"]) {
@@ -113,7 +96,13 @@
             make.top.equalTo(self.titleLabel.mas_bottom).offset(15).priority(999);
             make.centerX.equalTo(self.coverView);
             make.width.mas_equalTo(QMFixWidth(100));
+            make.height.mas_equalTo(25);
             make.bottom.equalTo(self.coverView.mas_bottom).offset(-15).priority(999);
+        }];
+        
+        [_contentLabel mas_remakeConstraints:^(MASConstraintMaker *make) {
+            make.top.equalTo(self.titleLabel.mas_bottom).offset(15).priority(999);
+            make.centerX.equalTo(self.coverView);
         }];
     }
 
@@ -128,6 +117,11 @@
 
 - (void)sendAction:(UIButton *)button {
     if ([self.message.evaluateStatus isEqualToString:@"0"]) {
+        
+        if (QMPushManager.share.evaluationNum == 0) {
+            [QMRemind showMessage:QMUILocalizableString(title.evaluation_remind)];
+            return;
+        }
         
         if (self.message.evaluateTimestamp.length > 0) {
             NSMutableDictionary *params = [NSMutableDictionary dictionary];

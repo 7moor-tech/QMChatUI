@@ -14,6 +14,7 @@ NS_ASSUME_NONNULL_BEGIN
 @property (nonatomic, copy) void(^confirmBlock)(BOOL isConfirm);
 
 @property (nonatomic, copy) NSString *tipString;
+@property (nonatomic, copy) NSString *closeChat;
 
 @end
 

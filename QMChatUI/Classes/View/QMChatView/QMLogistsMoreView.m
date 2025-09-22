@@ -130,9 +130,6 @@
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
     
-    //    QMCardInfoModel *model = self.dataArr[indexPath.row];
-    
-    
     QMLogistcsInfoSubCell *cell = [tableView dequeueReusableCellWithIdentifier:@"cell_id"];
     
     if (!cell) {

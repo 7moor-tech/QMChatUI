@@ -231,9 +231,9 @@
         CGSize size = [self.textLab preferredSizeWithMaxWidth: QMChatTextMaxWidth];
         CGFloat textViewWidth = size.width + 30 > 95 ? size.width + 30 : 95;
         if ([self.message.fromType isEqualToString:@"0"]) {
-            X = QM_kScreenWidth - textViewWidth - 67;
+            X = QM_kScreenWidth - textViewWidth - kChatLeftAndRightWidth;
         }else {
-            X = 67;
+            X = kChatLeftAndRightWidth;
         }
         
         [self.textView mas_remakeConstraints:^(MASConstraintMaker *make) {

@@ -108,6 +108,15 @@
     self.button.frame = CGRectMake(0, 0, textWidth + 24, 36);
     [self.button setTitleColor:[UIColor colorWithHexString:isDarkStyle ? @"#F5F5F5" : QMColor_151515_text] forState:UIControlStateNormal];
     [self.button setBackgroundColor:[UIColor colorWithHexString:isDarkStyle ? @"#262626" : QMColor_News_Agent_Light]];
+    //增强显示新增边框
+    if ([dic[@"badge_flag"] intValue] == 1) {
+        self.button.layer.borderWidth = 0.5 ;
+        self.button.layer.borderColor = [UIColor colorWithHexString:QMColor_News_Custom].CGColor ;
+        UIView * view = [[UIView alloc]initWithFrame:CGRectMake(self.button.frame.size.width - 15, 4, 5, 5)];
+        view.layer.cornerRadius = 2.5;
+        view.backgroundColor = [UIColor colorWithHexString:QMColor_News_Custom];
+        [self.button addSubview:view];
+    }
 }
 
 - (void)buttonAction:(UIButton *)button {

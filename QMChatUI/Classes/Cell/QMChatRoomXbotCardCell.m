@@ -33,7 +33,7 @@
 
 - (QMChatRoomXbotCardView*)cardView {
     if (!_cardView) {
-        _cardView = [[QMChatRoomXbotCardView alloc] initWithFrame:CGRectMake(67,  CGRectGetMaxY(self.timeLabel.frame) + 25, QM_kScreenWidth - 67 * 2, 300)];
+        _cardView = [[QMChatRoomXbotCardView alloc] initWithFrame:CGRectMake(58,  CGRectGetMaxY(self.timeLabel.frame) + 25, QM_kScreenWidth - 58 * 2, 300)];
     }
     return _cardView;
 }
@@ -51,7 +51,7 @@
     }else {
         
         CGFloat cellHeight = 0.0;
-        CGFloat cellWidth = QM_kScreenWidth - 67 * 2;
+        CGFloat cellWidth = QM_kScreenWidth - 58 * 2;
 
         int shop_list_show = [dic[@"data"][@"shop_list_show"] intValue] ?: 5;
         
@@ -92,12 +92,12 @@
             cellHeight = 44;
         }
         
-        _cardView.frame = CGRectMake(67, CGRectGetMaxY(self.timeLabel.frame) + 25, cellWidth, cellHeight);
+        _cardView.frame = CGRectMake(58, CGRectGetMaxY(self.timeLabel.frame) + 25, cellWidth, cellHeight);
         _cardView.messageId = _messageId;
         _cardView.type = message.cardType;
         _cardView.showCount = showCount;
         [_cardView setCardDic:dic];
-        self.chatBackgroundView.frame = CGRectMake(67, CGRectGetMaxY(self.timeLabel.frame) + 25, cellWidth, cellHeight);
+        self.chatBackgroundView.frame = CGRectMake(58, CGRectGetMaxY(self.timeLabel.frame) + 25, cellWidth, cellHeight);
     }
 }
 

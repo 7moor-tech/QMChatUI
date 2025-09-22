@@ -10,11 +10,11 @@
 
 NS_ASSUME_NONNULL_BEGIN
 
-@class QMChatInputView;
 @class QMChatMoreView;
 @class QMChatFaceView;
 @class QMRecordIndicatorView;
 @class QMChatAssociationInputView;
+@class QMChatInputView;
 
 typedef enum : NSUInteger {
     QMDarkStyleDefault = 1, /**系统自定义*/
@@ -49,28 +49,32 @@ typedef enum : NSUInteger {
 @property (nonatomic, copy) NSString *currentNodeId;
 /**入口节点中_id*/
 @property (nonatomic, copy) NSString *entranceId;
-/**流程中节点类型 (人工 机器人 …)*/
-@property (nonatomic, copy) NSString *processType;
-/**日程管理的留言数据*/
-@property (nonatomic, copy) NSArray * LeaveArray;
-/**用户头像*/
+/**用户头像 url*/
 @property (nonatomic, copy) NSString *avaterStr;
 /**是否开启日程管理*/
 @property (nonatomic, assign) BOOL isOpenSchedule;
-/**判断是否为正常页面跳转*/
-@property (nonatomic, assign) BOOL isPush;
-/**是否开启视频权限*/
-@property (nonatomic, assign) BOOL isOpenVideo;
 /**是否开启暗黑模式*/
 @property (nonatomic, assign) QMDarkStyle darkStyle;
 /**是否开启聊天*/
 @property (nonatomic, assign)BOOL isSpeak;
-/**是否是机器人*/
-@property (nonatomic, assign) BOOL isRobot;
+/**键盘位置*/
+@property (nonatomic, assign) CGRect keyBoardFrame;
+//保存键盘弹出前tableview的contentOffset,方便我们在键盘收起时将tableview进行还原程原先的位置
+@property (assign, nonatomic) CGPoint lastContentOffset;
+// 访客userName
+@property (nonatomic, copy) NSString *userName;
+
+/**客服状态**/
+@property (nonatomic, assign) QMKFStatus KFStatus;
+
+@property (nonatomic,copy) NSString *fromUrl;
 
 /**开启访客无响应 定时断开会话*/
 - (void)createNSTimer;
+- (void)removeTimer;
 - (void)hideKeyboard;
+//切换机器人
+- (void)switchRobot:(NSString *)robotId;
 
 - (void)createEvaluationView:(BOOL)isPop andGetServerTime:(BOOL)GetSer andEvaluatId:(NSString *)evaluatId andFrom:(NSString *)from;
 

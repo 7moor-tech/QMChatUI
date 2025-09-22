@@ -11,9 +11,10 @@
 
 @interface QMAlertTipView ()
 
-@property (nonatomic, strong) UILabel *titleLabel;
+@property (nonatomic, strong) UIView *backView;
 @property (nonatomic, strong) UIButton *cancelButton;
 @property (nonatomic, strong) UIButton *configButton;
+@property (nonatomic, strong) UILabel *titleLabel;
 
 @end
 @implementation QMAlertTipView
@@ -31,6 +32,7 @@
     self.backgroundColor = [UIColor colorWithHexString:QMColor_000000_text alpha:0.4];
     
     UIView *backView = [[UIView alloc] init];
+    self.backView = backView;
     backView.backgroundColor = [UIColor whiteColor];
     backView.QMCornerRadius = 10;
     [self addSubview:backView];
@@ -48,8 +50,8 @@
     [self.titleLabel mas_makeConstraints:^(MASConstraintMaker *make) {
         make.top.mas_equalTo(25);
         make.centerX.equalTo(self);
-        make.left.mas_equalTo(QMFixWidth(55));
-        make.right.mas_equalTo(-QMFixWidth(55));
+        make.left.mas_equalTo(QMFixWidth(30));
+        make.right.mas_equalTo(-QMFixWidth(30));
     }];
     
     self.cancelButton = [UIButton buttonWithType:UIButtonTypeCustom];
@@ -68,7 +70,7 @@
     
     self.configButton = [UIButton buttonWithType:UIButtonTypeCustom];
     [self.configButton setTitle:@"确定" forState:UIControlStateNormal];
-    self.configButton.backgroundColor = [UIColor colorWithHexString:@"#19CAA6 "];
+    self.configButton.backgroundColor = [UIColor colorWithHexString:QMColor_News_Custom];
     [self.configButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
     self.configButton.QMCornerRadius = 5;
     [self.configButton addTarget:self action:@selector(sureButtonAction:) forControlEvents:UIControlEventTouchUpInside];
@@ -78,11 +80,27 @@
         make.centerY.equalTo(self.cancelButton);
         make.size.mas_equalTo(CGSizeMake(QMFixWidth(110), 40));
     }];
-    
 }
 
 - (void)setTipString:(NSString *)tipString {
     self.titleLabel.text = tipString;
+    CGFloat textHeight = [QMLabelText calculateTextHeight:tipString fontName:QM_PingFangSC_Med fontSize:15 maxWidth:QM_kScreenWidth-120];
+    if (textHeight > 70) {
+        [self.backView mas_updateConstraints:^(MASConstraintMaker *make) {
+            make.height.mas_equalTo(105+textHeight);
+        }];
+    }
+}
+
+- (void)setCloseChat:(NSString *)closeChat {
+    [self.configButton setTitle:closeChat forState:UIControlStateNormal];
+    self.configButton.titleLabel.font = [UIFont systemFontOfSize:15];
+    self.cancelButton.hidden = YES;
+    [self.configButton mas_remakeConstraints:^(MASConstraintMaker *make) {
+        make.centerX.equalTo(self.backView);
+        make.bottom.mas_equalTo(-25);
+        make.size.mas_equalTo(CGSizeMake(QMFixWidth(110), 40));
+    }];
 }
 
 - (void)cancelButtonAction:(UIButton *)action {

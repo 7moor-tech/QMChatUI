@@ -7,6 +7,7 @@
 
 #import "QMFormSingleLineCell.h"
 #import "QMHeader.h"
+#import "Masonry.h"
 @interface QMFormSingleLineCell ()<UITextViewDelegate, UITextFieldDelegate>
 
 @property (nonatomic, strong) UITextView *textView;
@@ -47,6 +48,7 @@
         _textField.textColor = [UIColor colorWithHexString:QMColor_151515_text];
         _textField.font = [UIFont fontWithName:QM_PingFangSC_Reg size:14];
         _textField.delegate = self;
+        _textField.text = @"";
         _textField.layer.masksToBounds = YES;
         _textField.layer.cornerRadius = 8;
         _textField.layer.borderWidth = 0.5;
@@ -64,11 +66,24 @@
     NSString *remark = model[@"remarks"];
     
     _textField.placeholder = remark.length ? remark : @"";
-    
+    _textField.text = @"";
     NSString *value = model[@"value"];
     if (value.length) {
         _textField.text = value;
     }
+}
+
+-(void)textFieldDidChangeSelection:(UITextView *)textView{
+    
+//    NSLog(@"textField==%@",_textField);
+    NSString *value = _textField.text.length ? _textField.text : @"";
+    
+    NSMutableDictionary *newDic = self.dataDic.mutableCopy;
+    [newDic setValue:value forKey:@"value"];
+
+    self.dataDic = newDic;
+    self.baseSelectValue(newDic);
+    
 }
 
 #pragma mark -- UITextFieldDelegate

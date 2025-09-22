@@ -192,10 +192,21 @@ static CGFloat contentHeiht = 228.0;
 
 - (UIDatePicker *)datePicker {
     if (!_datePicker) {
-        _datePicker = [[UIDatePicker alloc]initWithFrame:CGRectMake(0, 44 , QM_kScreenWidth, contentHeiht - 44)];
+        _datePicker = [[UIDatePicker alloc]initWithFrame:CGRectMake((QM_kScreenWidth - 300)/2, 44 , 300, contentHeiht - 44)];
         NSLocale *locale = [[NSLocale alloc] initWithLocaleIdentifier:@"zh_CN"];
         _datePicker.locale = locale;
         _datePicker.datePickerMode = UIDatePickerModeDate;
+
+        NSString * minDateString = @"2000-01-01";
+//        NSString * maxDateString = @"2100-01-01";
+        
+        _datePicker.minimumDate = [self stringToDate:minDateString format:@"yyyy-MM-dd"];
+        _datePicker.maximumDate = [NSDate date];
+        if (@available(iOS 13.4, *)) {
+            _datePicker.preferredDatePickerStyle = UIDatePickerStyleWheels;
+        } else {
+            // Fallback on earlier versions
+        }
         _datePicker.backgroundColor = [UIColor whiteColor];
     }
     return _datePicker;

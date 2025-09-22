@@ -7,7 +7,7 @@
 
 #import "AnswerView.h"
 #import "AnswerCell.h"
-#import "Masonry.h"
+#import <Masonry/Masonry.h>
 
 @interface AnswerView () <UICollectionViewDelegate, UICollectionViewDataSource, UICollectionViewDelegateFlowLayout>
 

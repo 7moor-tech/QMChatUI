@@ -100,7 +100,7 @@ static CGFloat InteritemSpace = 10.f;
         maxItem = 4;
     }
     
-    CGFloat number = self.dataSource.count/maxItem;
+    CGFloat number;
     if (self.dataSource.count%maxItem == 0) {
         number = self.dataSource.count/maxItem;
     }else {
@@ -157,12 +157,14 @@ static CGFloat InteritemSpace = 10.f;
 
     tLabel.text = @"";
     tLabel.text = tempString;
+
     
     // labelFrame
-    CGSize size = [tLabel preferredSizeWithMaxWidth: QMChatTextMaxWidth];
-//    CGSize size = [tLabel preferredSizeWithMaxWidth: [UIScreen mainScreen].bounds.size.width - 160];
+//    CGSize size = [tLabel preferredSizeWithMaxWidth: QMChatTextMaxWidth];
+    CGSize size = [tLabel preferredSizeWithMaxWidth: [UIScreen mainScreen].bounds.size.width - 160];
 
     tLabel.frame = CGRectMake(15, height, size.width, size.height);
+    
     
     // 宽高适配
     height += size.height;

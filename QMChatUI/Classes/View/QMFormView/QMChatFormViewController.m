@@ -43,6 +43,7 @@
 {
     self = [super init];
     if (self) {
+        
         self.modalPresentationStyle = UIModalPresentationOverCurrentContext;
 
         self.view.backgroundColor = [[UIColor blackColor] colorWithAlphaComponent:0.5];
@@ -104,7 +105,6 @@
 - (void)viewDidLoad {
     [super viewDidLoad];
     // Do any additional setup after loading the view.
-
     
 
     dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(5 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
@@ -365,4 +365,8 @@
 - (void)show {
     [[UIApplication sharedApplication].keyWindow addSubview:self.view];
 }
+
+
+
+
 @end

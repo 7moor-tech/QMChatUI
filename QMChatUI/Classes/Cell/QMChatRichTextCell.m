@@ -8,7 +8,7 @@
 #import "QMChatRichTextCell.h"
 #import "QMChatShowRichTextController.h"
 #import "QMHeader.h"
-#define richViewHeight (QM_kScreenWidth - 67 * 2)
+#define richViewHeight (QM_kScreenWidth - 58 * 2)
 
 @implementation QMChatRichTextCell {
     NSString *_messageId;
@@ -80,8 +80,8 @@
     
     if ([message.fromType isEqualToString:@"1"]) {
         
-        self.chatBackgroundView.frame = CGRectMake(67, CGRectGetMaxY(self.timeLabel.frame)+25, richViewHeight, 120);
-        _richView.frame = CGRectMake(67, CGRectGetMaxY(self.timeLabel.frame)+25, richViewHeight, 120);
+        self.chatBackgroundView.frame = CGRectMake(58, CGRectGetMaxY(self.timeLabel.frame)+25, richViewHeight, 120);
+        _richView.frame = CGRectMake(58, CGRectGetMaxY(self.timeLabel.frame)+25, richViewHeight, 120);
         _titleLabel.text = message.richTextTitle;
         
         if (_titleLabel.text != nil) {
@@ -110,8 +110,8 @@
         }
         [_descriptionLabel sizeToFit];
     }else {
-        _richView.frame = CGRectMake(67, CGRectGetMaxY(self.timeLabel.frame)+25, richViewHeight, 80);
-        self.chatBackgroundView.frame = CGRectMake(67, CGRectGetMaxY(self.timeLabel.frame)+25, richViewHeight, 80);
+        _richView.frame = CGRectMake(58, CGRectGetMaxY(self.timeLabel.frame)+25, richViewHeight, 80);
+        self.chatBackgroundView.frame = CGRectMake(58, CGRectGetMaxY(self.timeLabel.frame)+25, richViewHeight, 80);
         self.chatBackgroundView.backgroundColor = [UIColor colorWithHexString:isDarkStyle ? QMColor_News_Agent_Dark : QMColor_News_Agent_Light];
         self.sendStatus.frame = CGRectMake(CGRectGetMinX(self.chatBackgroundView.frame)-25, CGRectGetMinY(self.chatBackgroundView.frame)+15, 20, 20);
         
@@ -159,6 +159,7 @@
     }else{
         showWebVC.urlStr = self.message.cardUrl;
     }
+//    [self.getCurrentVC.navigationController pushViewController:showWebVC animated:YES];
     showWebVC.modalPresentationStyle = UIModalPresentationFullScreen;
     [[UIApplication sharedApplication].keyWindow.rootViewController presentViewController:showWebVC animated:true completion:nil];
 }

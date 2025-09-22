@@ -199,7 +199,7 @@ static inline NSDictionary * NSAttributedStringAttributesFromLabel(TTTAttributed
         [mutableAttributes setObject:@(label.kern) forKey:(NSString *)kCTKernAttributeName];
 
         CTTextAlignment alignment = CTTextAlignmentFromTTTTextAlignment(label.textAlignment);
-        CGFloat lineSpacing = label.lineSpacing;
+        
         CGFloat minimumLineHeight = label.minimumLineHeight * label.lineHeightMultiple;
         CGFloat maximumLineHeight = label.maximumLineHeight * label.lineHeightMultiple;
         CGFloat lineSpacingAdjustment = CGFloat_ceil(label.font.lineHeight - label.font.ascender + label.font.descender);
@@ -214,7 +214,6 @@ static inline NSDictionary * NSAttributedStringAttributesFromLabel(TTTAttributed
         CTParagraphStyleSetting paragraphStyles[12] = {
             {.spec = kCTParagraphStyleSpecifierAlignment, .valueSize = sizeof(CTTextAlignment), .value = (const void *)&alignment},
             {.spec = kCTParagraphStyleSpecifierLineBreakMode, .valueSize = sizeof(CTLineBreakMode), .value = (const void *)&lineBreakMode},
-            {.spec = kCTParagraphStyleSpecifierLineSpacing, .valueSize = sizeof(CGFloat), .value = (const void *)&lineSpacing},
             {.spec = kCTParagraphStyleSpecifierMinimumLineSpacing, .valueSize = sizeof(CGFloat), .value = (const void *)&minimumLineHeight},
             {.spec = kCTParagraphStyleSpecifierMaximumLineSpacing, .valueSize = sizeof(CGFloat), .value = (const void *)&maximumLineHeight},
             {.spec = kCTParagraphStyleSpecifierLineSpacingAdjustment, .valueSize = sizeof (CGFloat), .value = (const void *)&lineSpacingAdjustment},

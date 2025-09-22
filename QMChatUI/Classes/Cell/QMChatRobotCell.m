@@ -8,7 +8,15 @@
 #import "QMChatRobotCell.h"
 #import "QMChatShowImageViewController.h"
 #import "QMHeader.h"
+#import "QMChatQuoteView.h"
+#import "QMTableContainerView.h"
+
 @interface QMChatRobotCell ()<UITextViewDelegate>
+@property (nonatomic, strong) QMChatQuoteView *quoteView;
+@property (nonatomic, strong) UIView *aiShowView;
+@property (nonatomic, strong) UILabel *aiLabel;
+// 存储当前显示的表格视图
+@property (nonatomic, strong) NSMutableDictionary<NSNumber *, QMTableContainerView *> *currentTables;
 
 @end
 @implementation QMChatRobotCell
@@ -17,30 +25,156 @@
     [super createUI];
     
     [self.chatBackgroundView addSubview:self.contentLab];
-    
-    [self.contentLab mas_makeConstraints:^(MASConstraintMaker *make) {
-        make.top.equalTo(self.chatBackgroundView).offset(6).priority(999);
+    [self.chatBackgroundView addSubview:self.quoteView];
+    [self.quoteView mas_makeConstraints:^(MASConstraintMaker *make) {
+        make.top.equalTo(self.chatBackgroundView).offset(2.5).priority(999);
         make.left.equalTo(self.chatBackgroundView).offset(8);
         make.right.equalTo(self.chatBackgroundView).offset(-8);
-        make.bottom.equalTo(self.chatBackgroundView).offset(-1).priorityHigh();
-        make.height.mas_greaterThanOrEqualTo(40).priorityHigh();
     }];
+    
+    [self.contentLab mas_makeConstraints:^(MASConstraintMaker *make) {
+        make.top.equalTo(self.quoteView.mas_bottom).offset(2.5);
+        make.left.equalTo(self.chatBackgroundView).offset(QMFixWidth(8));
+        make.right.equalTo(self.chatBackgroundView).offset(-QMFixWidth(8));
+        make.bottom.equalTo(self.chatBackgroundView).offset(-1).priorityHigh();
+        make.height.mas_greaterThanOrEqualTo(QMFixWidth(40)).priorityHigh();
+    }];
+    
+    _currentTables = [NSMutableDictionary dictionary];
 }
 
 - (void)setData:(CustomMessage *)message avater:(NSString *)avater {
     [super setData:message avater:avater];
+    self.message = message;
+    
+    // 移除旧的表格视图
+    [self.currentTables.allValues enumerateObjectsUsingBlock:^(QMTableContainerView * _Nonnull table, NSUInteger idx, BOOL * _Nonnull stop) {
+        [table removeFromSuperview];
+    }];
+    [self.currentTables removeAllObjects];
     
     self.contentLab.text = message.message;
     if (message.attrAttachmentReplaced == 1) {
         [self handleImage:message];
     }
     
-    if (message.contentAttr && message.contentAttr.length > 0) {
-        self.contentLab.attributedText = message.contentAttr;
+    if (message.isQuoteMsg) {
+        [self.quoteView setData:message.quoteContent.content];
+        
+        self.contentLab.text = [message.sendContent stringByRemovingPercentEncoding];
+        [self updateQuoteView];
+        [self.quoteView setBackColor:[message.fromType isEqualToString:@"1"]];
+
+    } else {
+        // 防止复用-回复布局
+        [self.quoteView setData:@""];
+        
+        if (message.contentAttr && message.contentAttr.length > 0) {
+            self.contentLab.attributedText = message.contentAttr;
+            
+            dispatch_async(dispatch_get_main_queue(), ^{
+                [self processTextAttachmentForMessage:message];
+            });
+        }
+        [self updateQuoteView];
+
     }
-//    NSLog(@"6666--%@",self.contentLab.text);
+    
     if (isDarkStyle) {
         self.contentLab.textColor = [UIColor colorWithHexString:QMColor_FFFFFF_text];
+    }
+}
+
+- (void)processTextAttachmentForMessage:(CustomMessage *)message {
+    if (!message.contentAttr) return;
+    
+    [self.currentTables.allValues enumerateObjectsUsingBlock:^(QMTableContainerView * _Nonnull table, NSUInteger idx, BOOL * _Nonnull stop) {
+        [table removeFromSuperview];
+    }];
+    [self.currentTables removeAllObjects];
+    
+    [message.contentAttr enumerateAttribute:NSAttachmentAttributeName
+                                   inRange:NSMakeRange(0, message.contentAttr.length)
+                                   options:0
+                                usingBlock:^(id value, NSRange range, BOOL *stop) {
+        if ([value isKindOfClass:[QMTableTextAttachment class]]) {
+            QMTableTextAttachment *tableAttachment = (QMTableTextAttachment *)value;
+            
+            // 检查表格是否已显示
+//            if (self.currentTables[@(tableAttachment.tableIndex)]) {
+//                return;
+//            }
+            
+            // 计算实际位置（此时布局已完成）
+            CGRect rect = [self.contentLab.layoutManager boundingRectForGlyphRange:range inTextContainer:self.contentLab.textContainer];
+            rect.origin.y += QMFixHeight(8);
+            // 创建表格容器
+            QMTableContainerView *tableContainer = [[QMTableContainerView alloc] initWithFrame:rect];
+            [tableContainer setupTableView:tableAttachment];
+            
+            // 存储并添加视图
+            self.currentTables[@(tableAttachment.tableIndex)] = tableContainer;
+            [self.contentLab addSubview:tableContainer];
+        }
+    }];
+}
+
+- (void)updateQuoteView {
+    if (self.message.isQuoteMsg) {
+        [self.quoteView mas_remakeConstraints:^(MASConstraintMaker *make) {
+            make.top.equalTo(self.chatBackgroundView).offset(4).priority(999);
+            make.left.equalTo(self.chatBackgroundView).offset(8);
+            make.right.equalTo(self.chatBackgroundView).offset(-8);
+        }];
+        
+        [self.contentLab mas_remakeConstraints:^(MASConstraintMaker *make) {
+            make.top.equalTo(self.quoteView.mas_bottom).offset(2.5);
+            make.left.equalTo(self.chatBackgroundView).offset(QMFixWidth(8));
+            make.right.equalTo(self.chatBackgroundView).offset(-QMFixWidth(8));
+            make.bottom.equalTo(self.chatBackgroundView).offset(-1).priorityHigh();
+            make.height.mas_greaterThanOrEqualTo(QMFixWidth(40)).priorityHigh();
+        }];
+    } else {
+        [self.quoteView mas_remakeConstraints:^(MASConstraintMaker *make) {
+            make.top.equalTo(self.chatBackgroundView).offset(0).priority(999);
+            make.height.mas_equalTo(0);
+        }];
+        
+        [self.contentLab mas_remakeConstraints:^(MASConstraintMaker *make) {
+            make.top.equalTo(self.chatBackgroundView).offset(6).priority(999);
+            make.left.equalTo(self.chatBackgroundView).offset(QMFixWidth(8));
+            make.right.equalTo(self.chatBackgroundView).offset(-QMFixWidth(8));
+            make.bottom.equalTo(self.chatBackgroundView).offset(-1).priorityHigh();
+            make.height.mas_greaterThanOrEqualTo(QMFixWidth(40)).priorityHigh();
+        }];
+        
+        if(self.message.agentTipsSwitch == YES){
+            [self.chatBackgroundView mas_updateConstraints:^(MASConstraintMaker *make) {
+                make.bottom.equalTo(self.contentView).offset(-50).priority(999);
+            }];
+            
+            [self.contentView addSubview:self.aiShowView];
+            
+            [self.aiShowView mas_remakeConstraints:^(MASConstraintMaker *make) {
+                
+                make.top.equalTo(self.chatBackgroundView.mas_bottom).offset(-4);
+                make.left.equalTo(self.chatBackgroundView).offset(0);
+                make.width.equalTo(self.chatBackgroundView);
+                make.height.mas_equalTo(40);
+                
+            }];
+            [self.aiLabel mas_remakeConstraints:^(MASConstraintMaker *make) {
+                
+                make.top.mas_equalTo(14);
+                make.left.equalTo(self.aiShowView).offset(40);
+                make.right.equalTo(self.aiShowView).offset(5);
+                make.height.mas_equalTo(15);
+                
+            }];
+            self.aiLabel.text = self.message.agentTipsContent;
+        }else{
+            [self.aiShowView removeFromSuperview];
+        }
     }
 }
 
@@ -55,7 +189,8 @@
         if ([value isKindOfClass:[QMChatFileTextAttachment class]]) {
             QMChatFileTextAttachment *attach = (QMChatFileTextAttachment *)value;
             
-            if ([attach.type isEqualToString:@"image"] && attach.need_replaceImage == YES) {
+            if (([attach.type isEqualToString:@"image"] ||
+                 [attach.type isEqualToString:@"video"]) && (attach.need_replaceImage == YES)) {
                 NSString *path = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES).firstObject;
                 path = [path stringByAppendingPathComponent:attach.url.lastPathComponent];
                 
@@ -80,6 +215,9 @@
     
     if (needReload) {
         self.contentLab.attributedText = model.contentAttr;
+        dispatch_async(dispatch_get_main_queue(), ^{
+            [self processTextAttachmentForMessage:model];
+        });
         if (self.needReloadCell) {
             self.needReloadCell(model);
         }
@@ -97,6 +235,33 @@
         _contentLab.delegate = self;
     }
     return _contentLab;
+}
+
+- (UIView *)aiShowView{
+    if (!_aiShowView){
+        _aiShowView = [[UIView alloc]init];
+        _aiShowView.backgroundColor = [UIColor colorWithHexString:@"#FAFAFA"];
+        _aiShowView.QMCornerRadius = 8;
+        _aiShowView.layer.maskedCorners = kCALayerMinXMaxYCorner | kCALayerMaxXMaxYCorner;
+        UIImageView* aiImage = [[UIImageView alloc] init];
+        aiImage.backgroundColor = [UIColor clearColor];
+        aiImage.contentMode = UIViewContentModeScaleAspectFill;
+        aiImage.image = [UIImage imageNamed:QMChatUIImagePath(@"AI@2x")];
+        aiImage.frame = CGRectMake(15, 14, 15, 15);
+        [_aiShowView addSubview:aiImage];
+        
+        _aiLabel = [[UILabel alloc]init];
+        _aiLabel.text = @"此消息由ai自动生成";
+        _aiLabel.font = [UIFont systemFontOfSize:15];
+        _aiLabel.textColor = [UIColor colorWithHexString:@"#9E9E9E"];
+        _aiLabel.textAlignment = NSTextAlignmentLeft;
+//        _aiLabel.numberOfLines = 0;
+        [_aiShowView addSubview:_aiLabel];
+        
+    }
+    
+    return _aiShowView;
+    
 }
 
 #pragma mark -------textViewDelegate-----
@@ -143,8 +308,12 @@
                 if ([actionType isEqualToString:@"robottransferagent"] ||
                     [actionType isEqualToString:@"transferagent"]) {
                     // 转人工
-                    self.tapArtificialAction(txtStr);
-                } else {
+                    self.tapArtificialAction(value);
+                } else if ([actionType isEqualToString:@"xbottransferrobot"]) {
+                    //切换机器人
+                    self.switchRobotAction(value);
+                }
+                else {
                     //自定义消息
                     self.tapSendMessage(txtStr, @"");
                 }
@@ -177,6 +346,24 @@
     return false;
 }
 
+- (void)prepareForReuse {
+    [super prepareForReuse];
+    
+    // 移除所有表格视图
+    [self.currentTables.allValues enumerateObjectsUsingBlock:^(QMTableContainerView * _Nonnull table, NSUInteger idx, BOOL * _Nonnull stop) {
+        [table removeFromSuperview];
+    }];
+    [self.currentTables removeAllObjects];
+    
+    _contentLab.text = nil;
+    _contentLab.attributedText = nil;
+}
 
+- (QMChatQuoteView *)quoteView {
+    if (!_quoteView) {
+        _quoteView = [QMChatQuoteView new];
+    }
+    return _quoteView;
+}
 
 @end

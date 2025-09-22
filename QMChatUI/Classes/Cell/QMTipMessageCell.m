@@ -15,7 +15,7 @@
 @implementation QMTipMessageCell
 
 - (void)setData:(CustomMessage *)message avater:(NSString *)avater {
-    
+
     self.customMessageLab.textColor = [UIColor colorWithHexString:isDarkStyle ? QMColor_FFFFFF_text : QMColor_666666_text];
     self.customMessageLab.text = message.message;
 }
@@ -30,7 +30,7 @@
     [_customMessageLab mas_makeConstraints:^(MASConstraintMaker *make) {
         make.left.equalTo(self.contentView).offset(QMFixWidth(30));
         make.right.equalTo(self.contentView).offset(-QMFixWidth(30));
-        make.top.equalTo(self.contentView).offset(10);
+        make.top.equalTo(self.contentView).offset(15);
         make.height.mas_equalTo(18);
         make.bottom.equalTo(self.contentView).offset(-10);
     }];

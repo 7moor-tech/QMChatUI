@@ -17,10 +17,10 @@
 - (void)sendText:(NSString *)text {
     @weakify(self)
     [QMConnect sendMsgText:text successBlock:^{
-        QMLog(@"发送成功");
+//        QMLog(@"发送成功");
         @strongify(self)
-        [self createNSTimer];
-        self.isSpeak = true;
+//        [self createNSTimer];
+        self.isSpeak = YES;
     } failBlock:^(NSString *reason){
         QMLog(@"发送失败");
         [QMRemind showMessage:reason];
@@ -31,24 +31,24 @@
 - (void)sendImage:(UIImage *)image {
     @weakify(self)
     [QMConnect sendMsgPic:image successBlock:^{
-        QMLog(@"图片发送成功");
+//        QMLog(@"图片发送成功");
         @strongify(self)
-        [self createNSTimer];
-        self.isSpeak = true;
+//        [self createNSTimer];
+        self.isSpeak = YES;
     } failBlock:^(NSString *reason){
         QMLog(@"图片发送失败");
     }];
 }
 
 //发送语音
-- (void)sendAudio:(NSString *)fileName duration:(NSString *)duration {
+- (void)sendAudioMessage:(NSString *)fileName duration:(NSString *)duration {
     NSString *filePath = [NSString stringWithFormat:@"%@.mp3", fileName];
     @weakify(self)
     [QMConnect sendMsgAudio:filePath duration:duration successBlock:^{
         QMLog(@"语音发送成功");
         @strongify(self)
-        [self createNSTimer];
-        self.isSpeak = true;
+//        [self createNSTimer];
+        self.isSpeak = YES;
     } failBlock:^(NSString *reason){
         QMLog(@"语音发送失败");
     }];
@@ -56,29 +56,53 @@
 
 // 发送文件
 - (void)sendFileMessageWithName:(NSString *)fileName AndSize:(NSString *)fileSize AndPath:(NSString *)filePath {
-    @weakify(self)
-    [QMConnect sendMsgFile:fileName filePath:filePath fileSize:fileSize progressHander:nil successBlock:^{
-        QMLog(@"文件上传成功");
-        @strongify(self)
-        [self createNSTimer];
-        self.isSpeak = true;
-    } failBlock:^(NSString *reason){
-        QMLog(@"文件上传失败");
-    }];
+
+    //新增文件上传黑白名单限制
+//    NSRange range = [fileName rangeOfString:@"."];
+    NSRange range = [fileName rangeOfString:@"." options:NSBackwardsSearch];
+    if (range.length > 0) {
+        
+        NSString *result = [fileName substringFromIndex:range.location].lowercaseString;
+        if ([QMLoginManager.shared.globalUploadBlackList containsString:result]) {
+            
+            [QMRemind showMessage:QMUILocalizableString(fileTost1)];
+            return;
+            
+        }
+        if (QMLoginManager.shared.isUploadWhite == YES && ![QMLoginManager.shared.uploadWhiteList containsString:result]) {
+            
+            [QMRemind showMessage:QMUILocalizableString(fileTost2)];
+            return;
+        }
+       
+    }
+   
+        @weakify(self)
+        [QMConnect sendMsgFile:fileName filePath:filePath fileSize:fileSize progressHander:nil successBlock:^{
+            QMLog(@"文件上传成功");
+            @strongify(self)
+    //        [self createNSTimer];
+            self.isSpeak = YES;
+        } failBlock:^(NSString *reason){
+            QMLog(@"文件上传失败");
+        }];
+        
+    
+    
 }
 
 // 失败消息重新发送
 - (void)resendAction:(QMTapGestureRecognizer *)gestureRecognizer {
     @weakify(self)
     dispatch_async(dispatch_get_main_queue(), ^{
-        NSArray * dataArray = [[NSArray alloc] init];
-        dataArray = [QMConnect getOneDataFromDatabase:gestureRecognizer.messageId];
+        NSMutableArray *dataArray = [NSMutableArray array];
+        [dataArray addObjectsFromArray:[QMConnect getOneDataFromDatabase:gestureRecognizer.messageId]];
         for (CustomMessage * custom in dataArray) {
             [QMConnect resendMessage:custom successBlock:^{
                 @strongify(self)
                 QMLog(@"重新发送成功");
-                [self createNSTimer];
-                self.isSpeak = true;
+//                [self createNSTimer];
+                self.isSpeak = YES;
             } failBlock:^(NSString *reason){
                 QMLog(@"重新发送失败");
             }];
@@ -107,6 +131,8 @@
     [QMConnect deleteCardTypeMessage:@"cardInfo_New"];
 
     NSDictionary *dic = @{
+        @"CardID"   : @"898764647",//自定义一个卡片id，作用是当执行自动发送时，可记录当前卡片以发送过，这个id的赋值规则客户可以完全自定义
+        @"autoCardSend"   : @"true",//是否自动发送 字符串 "false"否  "true"是
         @"showCardInfoMsg"   : @"1",
         @"title"             : @"极品家装北欧风格落地灯极品家装北欧风格落地灯极品家装北欧风格落地灯",
         @"sub_title"         : @"副标题字段副标题字段副标题字段副标题字段副标题字段副标题字段",
@@ -122,14 +148,16 @@
         @"target_url"            : @"http://www.baidu.com",
         @"tags"              : @[
                                 @{
-                                    @"label"       : @"按钮名称",
+                                    @"label"       : @"按钮名",
                                     @"url"         : @"https://www.7moor.com",
-                                    @"focusIframe" : @"iframe名称"
+                                    @"focusIframe" : @"iframe名称",
+                                    @"showRange"   : @"visitor" // 该字段不存在或者为all访客端座席端都展示， seats座席端展示，visitor访客端展示
                                 },
                                 @{
-                                    @"label"       : @"按钮名称1",
+                                    @"label"       : @"按钮名称",
                                     @"url"         : @"https://www.hao123.com",
-                                    @"focusIframe" : @"hao123"
+                                    @"focusIframe" : @"hao123",
+                                    @"showRange"   : @"seats"
                                 }],
     };
     
@@ -156,7 +184,7 @@
                     if (selectType == QMSelectTypePhoto) {
                         UIImagePickerController *picker = [[UIImagePickerController alloc] init];
                         picker.sourceType = UIImagePickerControllerSourceTypePhotoLibrary;
-                        picker.mediaTypes = @[(NSString *)kUTTypeImage];
+                        picker.mediaTypes = @[(NSString *)kUTTypeImage,(NSString*)kUTTypeMovie];
                         picker.delegate = self;
                         [self presentViewController:picker animated:YES completion:nil];
                     }
@@ -176,7 +204,7 @@
                     UIAlertAction *action = [UIAlertAction actionWithTitle:QMUILocalizableString(button.set) style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
                         if (UIApplicationOpenSettingsURLString != NULL) {
                             NSURL *appSettings = [NSURL URLWithString:UIApplicationOpenSettingsURLString];
-                            [[UIApplication sharedApplication] openURL:appSettings];
+                            [[UIApplication sharedApplication] openURL:appSettings options:@{} completionHandler:nil];
                         }
                     }];
                     
@@ -222,7 +250,30 @@
             }
             [self sendImage:image];
         }
-        else {
+        else  if([mediaType isEqualToString:(NSString *)kUTTypeMovie]){
+            
+            // 处理视频
+            NSURL *videoURL = info[UIImagePickerControllerMediaURL];
+            // name
+            NSString *photoPath = videoURL.absoluteString;
+            NSArray *array = [photoPath componentsSeparatedByString:@"/"];
+            //data
+            NSData *videoData = [NSData dataWithContentsOfURL:videoURL];
+//            
+//            // size
+            NSString *fileSize = [videoData length]<1024*1024 ? [NSString stringWithFormat:@"%d KB", (int)([videoData length]/1024.0)] : [NSString stringWithFormat:@"%d MB", (int)([videoData length]/1024.0/1024)];
+//            
+//            // filePath
+            NSString * filePath = [NSString stringWithFormat:@"%@/%@", NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES)[0], array.lastObject];
+            [videoData writeToFile:filePath atomically:YES];
+//             获取视频的文件信息
+//            NSFileManager *fileManager = [NSFileManager defaultManager];
+//            NSDictionary *attributes = [fileManager attributesOfItemAtPath:videoURL.path error:nil];
+//            NSDate *creationDate = attributes[NSFileCreationDate];
+//            NSUInteger fileSize1 = [attributes fileSize];
+//            NSLog(@"---%@--%ld",attributes,fileSize1);
+            @strongify(self)
+            [self sendFileMessageWithName:array.lastObject AndSize:fileSize AndPath:array.lastObject];
             
         }
     }];

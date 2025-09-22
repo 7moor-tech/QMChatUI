@@ -30,7 +30,7 @@ NS_ASSUME_NONNULL_BEGIN
 
 @property (nonatomic, copy) void(^tapSendMessage)(NSString *message, NSString *number);
 
-@property (nonatomic, copy) void(^didBtnAction)(BOOL);
+@property (nonatomic, copy) void(^didBtnAction)(BOOL isUseful, NSString *tag, NSString *remark);
 
 @property (nonatomic, copy) void(^tapNetAddress)(NSString *);
 
@@ -48,10 +48,16 @@ NS_ASSUME_NONNULL_BEGIN
 
 @property (nonatomic, copy) void(^needReloadCell)(CustomMessage * model);
 
+@property (nonatomic, copy) void(^contentStartEditBlock)(CGRect frameToView);
+
+@property (nonatomic, copy) void(^clickContactAction)(NSString *content, NSString *status);
+@property (nonatomic, copy) void(^switchRobotAction)(NSString *robotId);
+
 - (void)createUI;
 
 - (void)setData:(CustomMessage *)message avater:(NSString *)avater;
 
+- (void)setMessageIsRead:(NSString *)isRead;
 
 @end
 

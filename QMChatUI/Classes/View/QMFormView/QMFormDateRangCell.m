@@ -1,0 +1,311 @@
+//
+//  QMFormDateCell.m
+//  IMSDK
+//
+//  Created by lishuijiao on 2021/1/12.
+//
+
+#import "QMFormDateRangCell.h"
+#import "QMFormDateView.h"
+#import "QMHeader.h"
+#import "Masonry.h"
+#import <FQDateTimePicker/FQDateTimePicker.h>
+@interface QMFormDateRangCell ()<FQDateTimePickerViewDelegate>
+
+@property (nonatomic, strong) UIButton *selectButton;
+
+@property (nonatomic, strong) UILabel *contentLabel;
+
+@property (nonatomic, strong) UIImageView *arrowImage;
+
+@property (nonatomic, strong) UIButton *selectButton1;
+
+@property (nonatomic, strong) UILabel *contentLabel1;
+
+@property (nonatomic, strong) UIImageView *arrowImage1;
+
+@property (nonatomic, strong) NSDictionary *dataDic;
+
+@property (nonatomic, strong) NSMutableArray *dataMut;
+
+@property (nonatomic, assign) BOOL startOrEnd;
+
+@property (nonatomic, strong) QMFormDateView *dateView;
+
+@property (nonatomic, strong) FQDateTimePickerView *pickerView;
+
+@end
+
+@implementation QMFormDateRangCell
+
+- (instancetype)initWithStyle:(UITableViewCellStyle)style reuseIdentifier:(NSString *)reuseIdentifier {
+    self = [super initWithStyle:style reuseIdentifier:reuseIdentifier];
+    if (self) {
+        self.backgroundColor = [UIColor whiteColor];
+        self.selectionStyle = UITableViewCellSelectionStyleNone;
+
+        self.dataDic = [[NSDictionary alloc] init];
+        self.dataMut = [[NSMutableArray alloc]initWithObjects:@"",@"", nil];
+        
+        [self.contentView addSubview:self.selectButton];
+        [self.selectButton addSubview:self.contentLabel];
+        [self.selectButton addSubview:self.arrowImage];
+        
+        [self.selectButton mas_makeConstraints:^(MASConstraintMaker *make) {
+            make.top.equalTo(self.titleLabel.mas_bottom).offset(11);
+            make.left.equalTo(self.contentView).offset(15);
+            make.right.equalTo(self.contentView).offset(-15);
+            make.height.mas_equalTo(40);
+//            make.bottom.equalTo(self.contentView).offset(0);
+        }];
+        
+        [self.contentLabel mas_makeConstraints:^(MASConstraintMaker *make) {
+            make.top.equalTo(self.selectButton).offset(10);
+            make.left.equalTo(self.selectButton).offset(20);
+            make.right.equalTo(self.selectButton).offset(-40);
+            make.height.mas_equalTo(20);
+        }];
+        
+        [self.arrowImage mas_makeConstraints:^(MASConstraintMaker *make) {
+            make.top.equalTo(self.selectButton).offset(17);
+            make.left.equalTo(self.selectButton.mas_right).offset(-31);
+            make.width.mas_equalTo(11);
+            make.height.mas_equalTo(6);
+        }];
+        
+        [self.contentView addSubview:self.selectButton1];
+        [self.selectButton1 addSubview:self.contentLabel1];
+        [self.selectButton1 addSubview:self.arrowImage1];
+        
+        [self.selectButton1 mas_makeConstraints:^(MASConstraintMaker *make) {
+            make.top.equalTo(self.selectButton.mas_bottom).offset(5);
+            make.left.equalTo(self.contentView).offset(15);
+            make.right.equalTo(self.contentView).offset(-15);
+            make.height.mas_equalTo(40);
+            make.bottom.equalTo(self.contentView).offset(0);
+        }];
+        
+        [self.contentLabel1 mas_makeConstraints:^(MASConstraintMaker *make) {
+            make.top.equalTo(self.selectButton1).offset(10);
+            make.left.equalTo(self.selectButton1).offset(20);
+            make.right.equalTo(self.selectButton1).offset(-40);
+            make.height.mas_equalTo(20);
+        }];
+        
+        [self.arrowImage1 mas_makeConstraints:^(MASConstraintMaker *make) {
+            make.top.equalTo(self.selectButton1).offset(17);
+            make.left.equalTo(self.selectButton1.mas_right).offset(-31);
+            make.width.mas_equalTo(11);
+            make.height.mas_equalTo(6);
+        }];
+
+    }
+    return self;
+}
+
+- (UIButton *)selectButton {
+    if (!_selectButton) {
+        _selectButton = [[UIButton alloc] init];
+        _selectButton.layer.masksToBounds = YES;
+        _selectButton.layer.cornerRadius = 8;
+        _selectButton.tag = 10;
+        _selectButton.layer.borderWidth = 0.5;
+        _selectButton.layer.borderColor = [UIColor colorWithHexString:@"#CACACA"].CGColor;
+        [_selectButton addTarget:self action:@selector(selectAction:) forControlEvents:UIControlEventTouchUpInside];
+    }
+    return _selectButton;
+}
+
+- (UILabel *)contentLabel {
+    if (!_contentLabel) {
+        _contentLabel = [[UILabel alloc] init];
+        _contentLabel.font = [UIFont fontWithName:QM_PingFangSC_Reg size:14];
+        _contentLabel.textColor = [UIColor colorWithHexString:QMColor_999999_text];
+    }
+    return _contentLabel;
+}
+
+- (UIImageView *)arrowImage {
+    if (!_arrowImage) {
+        _arrowImage = [[UIImageView alloc] init];
+        _arrowImage.image = [UIImage imageNamed:QMUIComponentImagePath(@"QMForm_arrow")];
+    }
+    return _arrowImage;
+}
+
+- (UIButton *)selectButton1 {
+    if (!_selectButton1) {
+        _selectButton1 = [[UIButton alloc] init];
+        _selectButton1.layer.masksToBounds = YES;
+        _selectButton1.layer.cornerRadius = 8;
+        _selectButton1.layer.borderWidth = 0.5;
+        _selectButton1.tag = 11;
+        _selectButton1.layer.borderColor = [UIColor colorWithHexString:@"#CACACA"].CGColor;
+        [_selectButton1 addTarget:self action:@selector(selectAction:) forControlEvents:UIControlEventTouchUpInside];
+    }
+    return _selectButton1;
+}
+
+- (UILabel *)contentLabel1 {
+    if (!_contentLabel1) {
+        _contentLabel1 = [[UILabel alloc] init];
+        _contentLabel1.font = [UIFont fontWithName:QM_PingFangSC_Reg size:14];
+        _contentLabel1.textColor = [UIColor colorWithHexString:QMColor_999999_text];
+    }
+    return _contentLabel1;
+}
+
+- (UIImageView *)arrowImage1 {
+    if (!_arrowImage1) {
+        _arrowImage1 = [[UIImageView alloc] init];
+        _arrowImage1.image = [UIImage imageNamed:QMUIComponentImagePath(@"QMForm_arrow")];
+    }
+    return _arrowImage1;
+}
+
+- (void)setModel:(NSDictionary *)model {
+    [super setModel:model];
+    
+    self.dataDic = model;
+    NSString *remark = model[@"remarks"];
+//    NSString *value = model[@"value"];
+    NSString * startS = model[@"start"];
+    NSString * endS = model[@"end"];
+    if (startS.length) {
+        _contentLabel.text = startS;
+        _contentLabel.textColor = [UIColor colorWithHexString:QMColor_151515_text];
+    }else {
+        _contentLabel.text = remark.length ? remark : @"开始时间请选择";
+        _contentLabel.textColor = remark.length ? [UIColor colorWithHexString:QMColor_151515_text] : [UIColor colorWithHexString:QMColor_999999_text];
+    }
+    
+    if (endS.length) {
+        _contentLabel1.text = endS;
+        _contentLabel1.textColor = [UIColor colorWithHexString:QMColor_151515_text];
+    }else {
+        _contentLabel1.text = remark.length ? remark : @"结束时间请选择";
+        _contentLabel1.textColor = remark.length ? [UIColor colorWithHexString:QMColor_151515_text] : [UIColor colorWithHexString:QMColor_999999_text];
+    }
+}
+
+- (void)selectAction:(UIButton *)btn {
+    [self.superview endEditing:YES];
+    NSString * value = @"";
+    if (btn.tag == 10) {
+        NSString *value1 = self.dataDic[@"start"];
+        value = value1.length ? value1 : @"";
+        self.startOrEnd = YES;
+    }else if(btn.tag == 11){
+        NSString *value1 = self.dataDic[@"end"];
+        value = value1.length ? value1 : @"";
+        self.startOrEnd = NO;
+    }
+//    NSString *value = self.dataDic[@"value"];
+//    value = value.length ? value : @"";
+//    @weakify(self)
+//    _dateView = [QMFormDateView showDateChooseViewWithDefaultDate:value dateFormat:@"" finishedBlock:^(NSString * _Nonnull date) {
+//        @strongify(self)
+//        dispatch_async(dispatch_get_main_queue(), ^{
+//            NSMutableDictionary *newDic = self.dataDic.mutableCopy;
+//            if (date.length) {
+//                [newDic setValue:date forKey:@"value"];
+//            }
+//            [self setModel:newDic];
+//            self.baseSelectValue(newDic);
+//        });
+//        
+//    } cancelBlock:^{
+//        
+//    }];
+    
+    _pickerView = [[FQDateTimePickerView alloc] init];
+    _pickerView.delegate = self;    //遵循代理
+    _pickerView.pickerModel = 3;
+    _pickerView.defaultDate = [self stringToDate:value format:@"yyyy-MM-dd HH:mm:ss"];
+    [_pickerView showPicker];
+    [[UIApplication sharedApplication].keyWindow addSubview:_dateView];
+    [_dateView mas_makeConstraints:^(MASConstraintMaker *make) {
+        make.edges.equalTo([UIApplication sharedApplication].keyWindow);
+    }];
+    
+}
+
+- (void)confirmActionFQDateTimePicker:(FQDateTimePickerView *)pickerView WithDate:(NSDate *)date withDateString:(NSString *)dateStr {
+//    if ([date compare:[NSDate date]] == NSOrderedAscending) {
+        NSMutableDictionary *newDic = self.dataDic.mutableCopy;
+        if (dateStr.length) {
+            if (self.startOrEnd == YES) {
+                NSString *value1 = self.dataDic[@"end"];
+                if (value1 == nil) {
+                    [newDic setValue:dateStr forKey:@"start"];
+                    self.dataMut[0] = dateStr;
+                    
+                }else
+                    if ([dateStr compare:value1] == NSOrderedAscending) {
+                    [newDic setValue:dateStr forKey:@"start"];
+                    self.dataMut[0] = dateStr;
+                }else{
+                    [QMRemind showMessage:@"开始时间不能晚于结束时间！"];
+                }
+                
+            }else{
+                NSString *value1 = self.dataDic[@"start"];
+                if (value1 == nil) {
+                    [newDic setValue:dateStr forKey:@"end"];
+                    self.dataMut[1] = dateStr;
+                }else if ([value1 compare:dateStr] == NSOrderedAscending){
+                    [newDic setValue:dateStr forKey:@"end"];
+                    self.dataMut[1] = dateStr;
+                }else{
+                    [QMRemind showMessage:@"结束时间不能早于开始时间！"];
+                }
+            }
+            [newDic setValue:self.dataMut forKey:@"value"];
+        }
+        [self setModel:newDic];
+        self.baseSelectValue(newDic);
+//    }else{
+//        [QMRemind showMessage:@"选择的时间不能大于当前时间！"];
+//    }
+    
+}
+
+- (BOOL)compareDateWithStart:(NSString *)startDate end:(NSString *)endDate{
+    
+    if ([startDate compare:endDate] == NSOrderedAscending) {
+        return YES;
+    }
+    return NO;
+}
+
+- (void)cancelActionFQDateTimePicker:(FQDateTimePickerView *)pickerView {
+//    NSLog(@"wuwuFQ：cancelAction");
+}
+
+- (void)scrollActionFQDateTimePicker:(FQDateTimePickerView *)pickerView WithDate:(NSDate *)date withDateString:(NSString *)dateStr {
+//    NSLog(@"wuwuFQ：%@---%@", date, dateStr);
+}
+
+- (NSDate *)stringToDate:(NSString *)dateString format:(NSString *)format {
+    if (!dateString.length) {
+        return nil;
+    }
+    NSDateFormatter *dateFormatter = [[NSDateFormatter alloc] init];
+    [dateFormatter setDateFormat:format];
+    NSDate *dateFormatted = [dateFormatter dateFromString:dateString];
+    return dateFormatted;
+}
+
+
+- (void)awakeFromNib {
+    [super awakeFromNib];
+    // Initialization code
+}
+
+- (void)setSelected:(BOOL)selected animated:(BOOL)animated {
+    [super setSelected:selected animated:animated];
+
+    // Configure the view for the selected state
+}
+
+@end

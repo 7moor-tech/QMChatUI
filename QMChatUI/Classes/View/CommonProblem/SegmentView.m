@@ -6,7 +6,7 @@
 //
 
 #import "SegmentView.h"
-#import "Masonry.h"
+#import <Masonry/Masonry.h>
 #import "QMHeader.h"
 
 
@@ -122,12 +122,9 @@
 }
 
 - (void)changeSelected:(NSUInteger)selectedIndex {
-//    if (self.collectionView.visibleCells.count > self.selectedIndex && self.selectedIndex != selectedIndex) {
-//        NSIndexPath *oldIndex = [NSIndexPath indexPathForRow:self.selectedIndex inSection:0];
-//        UICollectionViewCell *cell = [self.collectionView cellForItemAtIndexPath:oldIndex];
-//        cell.selected = NO;
-//    }
+
     self.selectedIndex = selectedIndex;
+    
 //    if (self.collectionView.visibleCells.count > self.selectedIndex) {
 //        NSIndexPath *newIndex = [NSIndexPath indexPathForRow:self.selectedIndex inSection:0];
 //        UICollectionViewCell *cell = [self.collectionView cellForItemAtIndexPath:newIndex];
@@ -262,6 +259,13 @@
     
     if (self.onceAgainUpdateVernierLocation) {
         SegmentCell *selectedCell = [self getCell:self.selectedIndex];
+        for (SegmentCell *cell in self.collectionView.visibleCells) {
+            if (selectedCell == cell) {
+                cell.selected = YES;
+            } else {
+                cell.selected = NO;
+            }
+        }
         if (selectedCell) {
             [self updateVernierLocation];
         } else { // 快速滑动
@@ -308,7 +312,7 @@
     CGFloat width = self.collectionView.contentSize.width;
     CGFloat margin;
     if (width > SCREEN_WIDTH) {
-        width = SCREEN_WIDTH;
+//        width = SCREEN_WIDTH;
         margin = 0;
     } else {
         margin = (SCREEN_WIDTH - width) / 2.0;
@@ -369,17 +373,22 @@
 
 - (UICollectionViewCell *)collectionView:(UICollectionView *)collectionView cellForItemAtIndexPath:(NSIndexPath *)indexPath {
     SegmentCell *cell = [collectionView dequeueReusableCellWithReuseIdentifier:NSStringFromClass([SegmentCell class]) forIndexPath:indexPath];
+    
     cell.titleLabel.text = self.titles[indexPath.item];
     cell.titleNomalFont = self.titleNomalFont;
     cell.titleSelectedFont = self.titleSelectedFont;
     cell.titleNormalColor = self.titleNormalColor;
     cell.titleSelectedColor = self.titleSelectedColor;
     cell.animateDuration = self.animateDuration;
+    
     return cell;
 }
 
 - (void)collectionView:(UICollectionView *)collectionView willDisplayCell:(SegmentCell *)cell forItemAtIndexPath:(NSIndexPath *)indexPath {
+    
     cell.selected = self.selectedIndex == indexPath.item;
+    
+
 }
 
 #pragma mark - UICollectionViewDelegate
@@ -401,7 +410,7 @@
     targetCell.selected = YES;
     
     self.selectedIndex = indexPath.item;
-    NSLog(@"cellselectedIndex====%lu", (unsigned long)self.selectedIndex);
+//    NSLog(@"cellselectedIndex====%lu", (unsigned long)self.selectedIndex);
 }
 
 #pragma mark - Setters

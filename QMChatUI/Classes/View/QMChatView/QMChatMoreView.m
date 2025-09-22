@@ -7,123 +7,214 @@
 
 #import "QMChatMoreView.h"
 #import "QMHeader.h"
+#import <QMLineSDK/QMLineSDK.h>
+#import <Masonry/Masonry.h>
+
+#define moreBtnWidht 60
+
+@interface QMChatMoreView () <UICollectionViewDataSource, UICollectionViewDelegate>
+
+@property (nonatomic, strong) UICollectionView *rootView;
+@property (nonatomic, strong) NSMutableArray <QMChatMoreModel *>*dataArray;
+@end
 
 @implementation QMChatMoreView
 
 - (instancetype)initWithFrame:(CGRect)frame {
     self = [super initWithFrame:frame];
     if (self) {
-        self.backgroundColor = [UIColor colorWithHexString:QMColor_F6F6F6_BG];
-        [self createView];
+
+        [self layoutViews];
     }
     return self;
 }
 
-- (void)createView {
+- (QMChatMoreModel *)getChatMoreItem:(QMChatMoreMode)mode {
+    QMChatMoreModel *model = [QMChatMoreModel new];
+    model.mode = mode;
     
-    // 打开摄像头
-    self.takeCameraBtn = [[BottomTitleBtn alloc] initWithFrame:CGRectMake(([UIScreen mainScreen].bounds.size.width-60*4)/5, 15, 60, 81)];
-    [self.takeCameraBtn setTitle:QMUILocalizableString(button.chat_camera) forState:UIControlStateNormal];
-    [self.takeCameraBtn setImage:[UIImage imageNamed:QMChatUIImagePath(@"QM_ToolBar_Camera")] forState:UIControlStateNormal];
-    [self addSubview:self.takeCameraBtn];
-    
-    // 获取相册图片
-    self.takePicBtn = [[BottomTitleBtn alloc] initWithFrame:CGRectMake(([UIScreen mainScreen].bounds.size.width-60*4)/5*2+60, 15, 60, 81)];
-    [self.takePicBtn setTitle:QMUILocalizableString(button.chat_img) forState:UIControlStateNormal];
-    [self.takePicBtn setImage:[UIImage imageNamed:QMChatUIImagePath(@"QM_ToolBar_Picture")] forState:UIControlStateNormal];
-    [self addSubview:self.takePicBtn];
+    switch (mode) {
+        case QMChatMoreModePicture:
+            model.image_name = @"ToolBar_Picture";
+            model.name = QMUILocalizableString(button.chat_img);
+            break;
+        case QMChatMoreModeCamera:
+            model.image_name = @"QM_ToolBar_Camera";
+            model.name = QMUILocalizableString(button.chat_camera);
+            break;
+        case QMChatMoreModeFile:
+            model.image_name = @"QM_ToolBar_File";
+            model.name = QMUILocalizableString(button.chat_file);
+            break;
+        case QMChatMoreModeQuestion:
+            model.image_name = @"QM_ToolBar_Question";
+            model.name = QMUILocalizableString(button.chat_question);
+            break;
+        case QMChatMoreModeEvaluate:
+            model.image_name = @"QM_ToolBar_Evaluate";
+            model.name = QMUILocalizableString(button.chat_evaluate);
+            break;
+        case QMChatMoreModeVideo:
+            model.image_name = @"QM_ToolBar_Video";
+            model.name = QMUILocalizableString(button.chat_video);
+            break;
 
-    // 获取本地文件
-    self.takeFileBtn = [BottomTitleBtn buttonWithType:UIButtonTypeCustom];
-    self.takeFileBtn.frame = CGRectMake(([UIScreen mainScreen].bounds.size.width-60*4)/5*3+120, 15, 60, 81);
-    [self.takeFileBtn setTitle:QMUILocalizableString(button.chat_file) forState:UIControlStateNormal];
-    [self.takeFileBtn setImage:[UIImage imageNamed:QMChatUIImagePath(@"QM_ToolBar_File")] forState:UIControlStateNormal];
-    [self addSubview:self.takeFileBtn];
-    
-    // 常见问题
-    self.questionBtn = [BottomTitleBtn buttonWithType:UIButtonTypeCustom];
-    self.questionBtn.frame = CGRectMake(([UIScreen mainScreen].bounds.size.width-60*4)/5*4+180, 15, 60, 81);
-    self.questionBtn.titleLabel.lineBreakMode = NSLineBreakByTruncatingTail;
-    [self.questionBtn setTitle:QMUILocalizableString(button.chat_question) forState:UIControlStateNormal];
-    [self.questionBtn setImage:[UIImage imageNamed:QMChatUIImagePath(@"QM_ToolBar_Question")] forState:UIControlStateNormal];
-    [self addSubview:self.questionBtn];
-
-    // 视频
-    self.videoBtn = [BottomTitleBtn buttonWithType:UIButtonTypeCustom];
-    self.videoBtn.frame = CGRectMake(([UIScreen mainScreen].bounds.size.width-60*4)/5, 111, 60, 81);
-    [self.videoBtn setTitle:QMUILocalizableString(button.chat_video) forState:UIControlStateNormal];
-    [self.videoBtn setImage:[UIImage imageNamed:QMChatUIImagePath(@"QM_ToolBar_Video")] forState:UIControlStateNormal];
-    [self addSubview:self.videoBtn];
-
-    // 进行服务评价
-    self.evaluateBtn = [BottomTitleBtn buttonWithType:UIButtonTypeCustom];
-    self.evaluateBtn.frame = CGRectMake(([UIScreen mainScreen].bounds.size.width-60*4)/5*2+60, 111, 60, 81);
-    [self.evaluateBtn setTitle:QMUILocalizableString(button.chat_evaluate) forState:UIControlStateNormal];
-    [self.evaluateBtn setImage:[UIImage imageNamed:QMChatUIImagePath(@"QM_ToolBar_Evaluate")] forState:UIControlStateNormal];
-    [self addSubview:self.evaluateBtn];
-
-    [self.videoBtn addObserver:self forKeyPath:@"hidden" options:NSKeyValueObservingOptionNew context:nil];
+        default:
+            break;
+    }
+    return model;
 }
 
-- (void)observeValueForKeyPath:(NSString *)keyPath ofObject:(id)object change:(NSDictionary<NSKeyValueChangeKey,id> *)change context:(void *)context {
-    if ([keyPath isEqualToString:@"hidden"] && object == self.videoBtn) {
-        BOOL isHidden = [change[NSKeyValueChangeNewKey] boolValue];
-        if (isHidden) {
-            self.evaluateBtn.frame = self.videoBtn.frame;
-        } else {
-            self.evaluateBtn.frame =  CGRectMake(([UIScreen mainScreen].bounds.size.width-60*4)/5*2+60, 111, 60, 81);
+- (void)layoutViews {
+
+    self.dataArray = [NSMutableArray array];
+
+    QMLoginManager *uiModel = QMLoginManager.shared;
+
+    if (uiModel.isRobot == true) {
+        if (uiModel.isShowCameraByRobotBtn == YES ) {
+            QMChatMoreModel *pictModel = [self getChatMoreItem:QMChatMoreModeCamera];
+            [self.dataArray addObject:pictModel];
+        }
+        if (uiModel.isShowPictureByRobotBtn == YES) {
+            QMChatMoreModel *pictModel = [self getChatMoreItem:QMChatMoreModePicture];
+            [self.dataArray addObject:pictModel];
+        }
+        if (uiModel.isShowFileByRobotBtn == YES) {
+            QMChatMoreModel *pictModel = [self getChatMoreItem:QMChatMoreModeFile];
+            [self.dataArray addObject:pictModel];
+        }
+        
+        if (uiModel.isShowQuestionByRobotBtn == YES) {
+            QMChatMoreModel *pictModel = [self getChatMoreItem:QMChatMoreModeQuestion];
+            [self.dataArray addObject:pictModel];
+        }
+        
+        if (uiModel.isShowEvaluateBtn == YES && QMLoginManager.shared.isEvaluate == NO) {
+            QMChatMoreModel *pictModel = [self getChatMoreItem:QMChatMoreModeEvaluate];
+            [self.dataArray addObject:pictModel];
+        }
+        
+    }else{
+        
+        
+        
+        if (self.dataArray.count == 0) {
+            
+            if (uiModel.isShowCameraBtn == YES) {
+                QMChatMoreModel *pictModel = [self getChatMoreItem:QMChatMoreModeCamera];
+                [self.dataArray addObject:pictModel];
+            }
+            
+            if (uiModel.isShowPictureBtn == YES) {
+                QMChatMoreModel *pictModel = [self getChatMoreItem:QMChatMoreModePicture];
+                [self.dataArray addObject:pictModel];
+            }
+            
+            if (uiModel.isShowFileBtn == YES) {
+                QMChatMoreModel *pictModel = [self getChatMoreItem:QMChatMoreModeFile];
+                [self.dataArray addObject:pictModel];
+            }
+            
+            if (uiModel.isShowQuestionBtn == YES) {
+                QMChatMoreModel *pictModel = [self getChatMoreItem:QMChatMoreModeQuestion];
+                [self.dataArray addObject:pictModel];
+            }
+            
+            if ([QMConnect sdkVideoRights] == YES) {
+                QMChatMoreModel *pictModel = [self getChatMoreItem:QMChatMoreModeVideo];
+                [self.dataArray addObject:pictModel];
+            }
+            
+            if (QMLoginManager.shared.isEvaluate == NO) {
+                
+                if (uiModel.isEvaluateRound == YES && uiModel.isRobot == false) {
+                    if (uiModel.currentEvaluateRound + 1 > uiModel.evaluateRound) {
+                        QMChatMoreModel *pictModel = [self getChatMoreItem:QMChatMoreModeEvaluate];
+                        [self.dataArray addObject:pictModel];
+                    }
+                    
+                }
+                
+//                if (uiModel.isShowEvaluateBtn == YES && uiModel.isRobot == true) {
+//                    QMChatMoreModel *pictModel = [self getChatMoreItem:QMChatMoreModeEvaluate];
+//                    [self.dataArray addObject:pictModel];
+//                }
+            }
+            
         }
     }
+            
+    UICollectionViewFlowLayout *flowlayout = [UICollectionViewFlowLayout new];
+    flowlayout.itemSize = CGSizeMake(60, 60 + 12 + 12);
+    flowlayout.sectionInset = UIEdgeInsetsMake(15, 30, 15, 30);
+    flowlayout.minimumLineSpacing = 14;
+    flowlayout.minimumInteritemSpacing = 24;
+    self.rootView = [[UICollectionView alloc] initWithFrame:self.bounds collectionViewLayout:flowlayout];
+    self.rootView.backgroundColor = [UIColor colorWithHexString:isDarkStyle ? QMColor_1E1E1E_BG : QMColor_F6F6F6_BG];
+    [self.rootView registerClass:UICollectionViewCell.class forCellWithReuseIdentifier:@"cell_id"];
+    self.rootView.dataSource = self;
+    self.rootView.delegate = self;
+    [self addSubview:self.rootView];
+
 }
+
+- (void)refreshMoreBtn {
+    [self layoutViews];
+    [self.rootView reloadData];
+}
+
+- (NSInteger)collectionView:(UICollectionView *)collectionView numberOfItemsInSection:(NSInteger)section {
+    return self.dataArray.count;
+}
+
+- (__kindof UICollectionViewCell *)collectionView:(UICollectionView *)collectionView cellForItemAtIndexPath:(NSIndexPath *)indexPath {
+    UICollectionViewCell *cell = [collectionView dequeueReusableCellWithReuseIdentifier:@"cell_id" forIndexPath:indexPath];
+    UILabel *lab = (UILabel *)[cell.contentView viewWithTag:200];
+    UIImageView *image = (UIImageView *)[cell.contentView viewWithTag:199];
+    if (!image) {
+        image = [UIImageView new];
+        image.contentMode = UIViewContentModeScaleAspectFit;
+        image.tag = 199;
+        [cell.contentView addSubview:image];
+        [image mas_makeConstraints:^(MASConstraintMaker *make) {
+            make.top.equalTo(cell.contentView);
+            make.height.width.mas_equalTo(60);
+            make.centerX.equalTo(cell.contentView);
+        }];
+    }
+    
+    if (!lab) {
+        lab = [UILabel new];
+        lab.tag = 200;
+        lab.textColor = QM_RGB(109, 109, 109);
+        lab.font = [UIFont fontWithName:QM_PingFangSC_Reg size:12];
+        lab.textAlignment = NSTextAlignmentCenter;
+        [cell.contentView addSubview:lab];
+        [lab mas_makeConstraints:^(MASConstraintMaker *make) {
+            make.left.bottom.right.equalTo(cell.contentView);
+            make.top.equalTo(image.mas_bottom).offset(10);
+        }];
+    }
+    
+    QMChatMoreModel *model = self.dataArray[indexPath.row];
+    lab.text = model.name;
+    image.image = [UIImage imageNamed:QMChatUIImagePath(model.image_name)];
+    
+    return cell;
+}
+
+- (void)collectionView:(UICollectionView *)collectionView didSelectItemAtIndexPath:(NSIndexPath *)indexPath {
+    QMChatMoreModel *model = self.dataArray[indexPath.row];
+    if ([self.delegate respondsToSelector:@selector(moreViewSelectAcitonIndex:)]) {
+        [self.delegate moreViewSelectAcitonIndex:model.mode];
+    }
+}
+
 
 @end
 
-@interface BottomTitleBtn()
-
-@end
-
-@implementation BottomTitleBtn
-
-- (instancetype)initWithFrame:(CGRect)frame {
-    if (self = [super initWithFrame:frame]) {
-        self.titleLabel.font = [UIFont systemFontOfSize:12];
-        self.titleLabel.textColor = [UIColor colorWithRed:153/255.0 green:153/255.0 blue:153/255.0 alpha:1.0];
-        [self setTitleColor:[UIColor colorWithRed:153/255.0 green:153/255.0 blue:153/255.0 alpha:1.0] forState:UIControlStateNormal];
-        self.titleLabel.textAlignment = NSTextAlignmentCenter;
-        self.imageView.contentMode = UIViewContentModeScaleAspectFit;
-    }
-    return self;
-}
-
-- (CGRect)titleRectForContentRect:(CGRect)contentRect {
-    CGFloat orgX = 0;
-    CGFloat orgY = contentRect.size.height - [UIFont systemFontOfSize:12].lineHeight - 4;
-    orgY = orgY > 0 ? orgY : 0;
-    CGFloat w = contentRect.size.width;
-    CGFloat h = [UIFont systemFontOfSize:12].lineHeight;
-
-    return CGRectMake(orgX, orgY, w, h);
-}
-
-- (CGRect)imageRectForContentRect:(CGRect)contentRect {
-//    [super imageRectForContentRect:contentRect];
-    CGFloat orgX = 0;
-    CGFloat orgY = 0;
-    CGFloat w = contentRect.size.width;
-    CGFloat h = contentRect.size.height - [UIFont systemFontOfSize:12].lineHeight - 4;
-    h = h > 0 ? h : 0;
-    if (w > h) {
-        w = h;
-    } else {
-        h = w;
-    }
-    
-    if (w < contentRect.size.width) {
-        orgX = (contentRect.size.width - w)/2.0;
-    }
-    
-    return CGRectMake(orgX, orgY, w, h);
-}
+@implementation QMChatMoreModel
 
 
 

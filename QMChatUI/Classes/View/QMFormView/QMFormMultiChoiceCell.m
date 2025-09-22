@@ -7,6 +7,7 @@
 
 #import "QMFormMultiChoiceCell.h"
 #import "QMHeader.h"
+#import "Masonry.h"
 @interface QMFormMultiChoiceCell ()
 
 @property (nonatomic, strong) UIView * coverView;

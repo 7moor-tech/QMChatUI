@@ -17,6 +17,7 @@
 #import "QMFormDocumentCell.h"
 #import "QMFormCityCell.h"
 #import "QMFormDateCell.h"
+#import "QMFormDateRangCell.h"
 
 @interface QMChatFormView () <UITableViewDelegate, UITableViewDataSource, UIGestureRecognizerDelegate>
 
@@ -74,17 +75,16 @@
         [self.tableView mas_makeConstraints:^(MASConstraintMaker *make) {
             make.top.equalTo(self.bottomView).offset(40);
             make.left.right.equalTo(self.bottomView);
-            make.height.mas_lessThanOrEqualTo(200);
-            make.bottom.equalTo(self.bottomView).offset(-90 - kStatusBarAndNavHeight);
+            make.height.mas_lessThanOrEqualTo(200).priority(666);
+            make.bottom.equalTo(self.bottomView).offset(-75);
         }];
         
         [self.submitButton mas_makeConstraints:^(MASConstraintMaker *make) {
-            make.top.equalTo(self.bottomView.mas_bottom).offset(-65 - kStatusBarAndNavHeight);
+//            make.top.equalTo(self.bottomView.mas_bottom).offset(-65 - kSafeArea);
             make.left.equalTo(self.bottomView).offset(25);
-//            make.right.equalTo(self.bottomView.mas_right).offset(-25);
             make.width.mas_equalTo(QM_kScreenWidth - 50);
             make.height.mas_equalTo(45);
-//            make.bottom.equalTo(self.bottomView.mas_bottom).offset(-20);
+            make.bottom.equalTo(self.bottomView.mas_bottom).offset(-20);
         }];
 
     }
@@ -143,6 +143,9 @@
         [_tableView registerClass:[QMFormDocumentCell class] forCellReuseIdentifier:NSStringFromClass([QMFormDocumentCell class])];
         [_tableView registerClass:[QMFormCityCell class] forCellReuseIdentifier:NSStringFromClass([QMFormCityCell class])];
         [_tableView registerClass:[QMFormDateCell class] forCellReuseIdentifier:NSStringFromClass([QMFormDateCell class])];
+        [_tableView registerClass:[QMFormDateRangCell class] forCellReuseIdentifier:NSStringFromClass([QMFormDateRangCell class])];
+        
+       
     }
     return _tableView;
 }
@@ -174,14 +177,14 @@
     self.dataArray = _formInfo.mutableCopy;
                 
     self.titleLabel.text = self.title;
-    CGFloat viewHeight = [self calculationHeight:formInfo] > 600 ? 600 : [self calculationHeight:formInfo];
+    CGFloat viewHeight = [self calculationHeight:formInfo] > 550 ? 550 : [self calculationHeight:formInfo];
     
     [self.bottomView mas_remakeConstraints:^(MASConstraintMaker *make) {
         make.top.equalTo(self).offset(QM_kScreenHeight - viewHeight);
         make.left.right.equalTo(self);
-        make.height.mas_equalTo(viewHeight);
+//        make.height.mas_equalTo(viewHeight-kSafeArea);
+        make.bottom.mas_equalTo(-kSafeArea);
 //        make.height.mas_equalTo(45*formInfo.count+40+90).priority(800);
-//        make.height.mas_lessThanOrEqualTo(500).priority(900);
     }];
     
     [_tableView reloadData];
@@ -189,7 +192,7 @@
 
 - (CGFloat)calculationHeight:(NSArray *)array {
     //初始高度是顶部和底部高度
-    CGFloat height = 40 + 90;
+    CGFloat height = 40 + 80 + kStatusBarAndNavHeight;
     for (id item in array) {
         NSString *type = item[@"type"];
         if ([type isEqualToString:@"note"]) {
@@ -206,11 +209,13 @@
             height += selectArray.count * (40 + 6) - 6 + 40;
         }else if ([type isEqualToString:@"document"]) {
             NSArray *fileList = item[@"filelist"];
-            height += fileList.count ? fileList.count * 50 + 40 : 40;
+            height += fileList.count ? fileList.count * 50 + 40 : 40+80;
         }else if ([type isEqualToString:@"city"]) {
             height += 40 + 46;
         }else if ([type isEqualToString:@"date"]) {
             height += 40 + 46;
+        }else if ([type isEqualToString:@"date_range"]) {
+            height += 40 + 100;
         }
     }
     return height;
@@ -229,7 +234,7 @@
 #pragma mark - buttonAction
 - (void)submitAction {
     QMLog(@"点击提交按钮");
-    
+    [self endEditing:YES];
     for (NSDictionary *dic in self.formInfo) {
         BOOL flag = [dic[@"flag"] boolValue];
         NSString *value = dic[@"value"];
@@ -378,8 +383,19 @@
             });
         };
         return cell;
+    }else if([type isEqualToString:@"date_range"]){
+        QMFormDateRangCell *cell = [tableView dequeueReusableCellWithIdentifier:NSStringFromClass([QMFormDateRangCell class]) forIndexPath:indexPath];
+        cell.model = dic;
+        
+        cell.baseSelectValue = ^(NSDictionary * _Nonnull dic) {
+            @strongify(self)
+            dispatch_async(dispatch_get_main_queue(), ^{
+                self.isReload = YES;
+                [self updateDataSource:dic withNumber:indexPath.row];
+            });
+        };
+        return cell;
     }
-    
     return UITableViewCell.new;
 }
 
@@ -390,6 +406,5 @@
         [self.tableView reloadData];
     }
 }
-
 
 @end

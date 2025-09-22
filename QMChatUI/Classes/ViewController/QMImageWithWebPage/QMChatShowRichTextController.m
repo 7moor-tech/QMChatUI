@@ -10,7 +10,7 @@
 #import <AVKit/AVKit.h>
 #import "QMHeader.h"
 
-@interface QMChatShowRichTextController () <UIScrollViewDelegate> {
+@interface QMChatShowRichTextController () <UIScrollViewDelegate,WKNavigationDelegate> {
     WKWebView *_webView;
     UIView *_topView;
     UIButton *_backButton;
@@ -52,10 +52,11 @@
 
 - (void)createWebView {
     _webView = [[WKWebView alloc] initWithFrame:CGRectMake(0, kStatusBarAndNavHeight, QM_kScreenWidth, [UIScreen mainScreen].bounds.size.height - kStatusBarAndNavHeight) configuration:[[WKWebViewConfiguration alloc] init]];
+    _webView.navigationDelegate = self;
     if ([self.urlStr hasPrefix:@"http"] || self.isForm) {
         self.urlStr = [self.urlStr stringByRemovingPercentEncoding];
-        NSString * url = [self.urlStr stringByAddingPercentEncodingWithAllowedCharacters:[NSCharacterSet URLQueryAllowedCharacterSet]];
-        NSURLRequest *request = [NSURLRequest requestWithURL:[NSURL URLWithString:url]];
+//        NSString * url = [self.urlStr stringByAddingPercentEncodingWithAllowedCharacters:[NSCharacterSet URLQueryAllowedCharacterSet]];
+        NSURLRequest *request = [NSURLRequest requestWithURL:[NSURL URLWithString:self.urlStr]];
         [_webView loadRequest:request];
         [self.view addSubview:_webView];
     }
@@ -63,15 +64,10 @@
         
         NSString *filePath = [NSString stringWithFormat:@"%@/%@/%@",NSHomeDirectory(),@"Documents",self.urlStr];
         
-        if ([self.urlStr containsString:@"png"] ||
-            [self.urlStr containsString:@"jpeg"] ||
-            [self.urlStr containsString:@"jpg"] ||
-            [self.urlStr containsString:@"heic"]) {
-            [self.view addSubview:_webView];
-            NSURL *url = [NSURL fileURLWithPath:filePath];
-            [_webView loadFileURL:url allowingReadAccessToURL:url];
-        }
-        else {
+
+        if ([self.urlStr containsString:@".mp4"] ||
+            [self.urlStr containsString:@".MOV"]) {
+
             AVPlayerViewController *vc = [[AVPlayerViewController alloc] initWithNibName:nil bundle:nil];
             vc.player = ({
                 AVPlayer *player = [AVPlayer playerWithURL:[NSURL fileURLWithPath:filePath]];
@@ -82,8 +78,29 @@
             [vc.player play];
             vc.view.frame = self.view.frame;
         }
+        else {
+            [self.view addSubview:_webView];
+            NSURL *url = [NSURL fileURLWithPath:filePath];
+            [_webView loadFileURL:url allowingReadAccessToURL:url];
+        }
     }
 
+}
+
+- (void)webView:(WKWebView *)webView decidePolicyForNavigationAction:(WKNavigationAction *)navigationAction decisionHandler:(void (^)(WKNavigationActionPolicy))decisionHandler {
+    if (navigationAction.targetFrame == nil) {
+        [webView loadRequest:navigationAction.request];
+    }
+        
+    decisionHandler(WKNavigationActionPolicyAllow);
+}
+
+- (void)webView:(WKWebView *)webView didStartProvisionalNavigation:(WKNavigation *)navigation {
+//    [QMActivityView startAnimating];
+}
+
+- (void)webView:(WKWebView *)webView didFinishNavigation:(WKNavigation *)navigation {
+//    [QMActivityView stopAnimating];
 }
 
 - (void)backAction:(UIButton *)button {

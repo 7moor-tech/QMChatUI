@@ -6,23 +6,33 @@
 //
 
 #import <UIKit/UIKit.h>
-#import "TCFaceView.h"
 
+@class QMChatEmoji;
 NS_ASSUME_NONNULL_BEGIN
 
-@protocol faceViewDelegate <NSObject>
+@protocol QMChatFaceDelegete <NSObject>
 
-- (void)SendTheFaceStr:(NSString *)faceStr isDelete:(BOOL)dele;
+- (void)touchFaceEmoji:(QMChatEmoji *)emoji;
 
-- (void)sendFaceAction;
+- (void)touchFaceDeleteBtn;
+
+- (void)touchFaceSendBtn;
 
 @end
 
-@interface QMChatFaceView : UIView <UIScrollViewDelegate, TCFaceViewDelegate>
+@interface QMChatFaceView : UIView
 
-@property (nonatomic,weak)id<faceViewDelegate>delegate;
+@property (nonatomic, weak) id<QMChatFaceDelegete> delegate;
 
-@property (nonatomic, strong)UIButton * sendButton;
+- (void)loadData;
+
+- (void)setButtonEnble:(BOOL)enable;
+
+@end
+
+@interface QMChatFaceCell : UICollectionViewCell
+
+@property (nonatomic, strong) UIImageView *imageView;
 
 @end
 

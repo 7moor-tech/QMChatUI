@@ -6,7 +6,7 @@
 //
 
 #import "AnswerCell.h"
-#import "Masonry.h"
+#import <Masonry/Masonry.h>
 #import "QMHeader.h"
 
 @interface AnswerCell () <UITableViewDelegate, UITableViewDataSource>

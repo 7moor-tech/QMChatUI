@@ -7,6 +7,7 @@
 
 #import "QMFormMultiLineCell.h"
 #import "QMHeader.h"
+#import "Masonry.h"
 @interface QMFormMultiLineCell ()<UITextViewDelegate>
 
 @property (nonatomic, strong) UITextView *textView;
@@ -75,6 +76,23 @@
     NSString *value = self.dataDic[@"value"];
     if (!value.length) {
         textView.text = @"";
+    }
+    if ([textView.text isEqualToString:self.dataDic[@"remarks"]]) {
+        textView.text = @"";
+       }
+
+}
+
+- (void)textViewDidChangeSelection:(UITextView *)textView{
+    
+    NSString *value = _textView.text.length ? _textView.text : @"";
+    
+    NSMutableDictionary *newDic = self.dataDic.mutableCopy;
+    [newDic setValue:value forKey:@"value"];
+
+    self.dataDic = newDic;
+    if (self.baseSelectValue) {
+        self.baseSelectValue(newDic);
     }
 }
 
