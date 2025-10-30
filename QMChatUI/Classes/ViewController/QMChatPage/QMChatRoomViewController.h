@@ -16,6 +16,13 @@ NS_ASSUME_NONNULL_BEGIN
 @class QMChatAssociationInputView;
 @class QMChatInputView;
 
+typedef enum : NSUInteger {
+    QMDarkStyleDefault = 1, /**系统自定义*/
+    QMDarkStyleOpen, /**打开暗黑模式*/
+    QMDarkStyleClose, /**关闭暗黑模式*/
+} QMDarkStyle;
+
+
 @interface QMChatRoomViewController : UIViewController
 /**消息列表*/
 @property (nonatomic, strong) UITableView *chatTableView;
