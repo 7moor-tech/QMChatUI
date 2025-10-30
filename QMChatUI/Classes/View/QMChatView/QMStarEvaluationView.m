@@ -132,7 +132,9 @@
             [self.backView addSubview:self.starView];
 
             self.evaluationLabel = [[UILabel alloc] initWithFrame:CGRectMake(0, CGRectGetMaxY(self.starView.frame), backW, 20)];
-            self.evaluationLabel.text = evaluation.evaluats[self.tempTag-100].name;
+            if (self.tempTag-100 >= 0) {
+                self.evaluationLabel.text = evaluation.evaluats[self.tempTag-100].name;
+            }
             self.evaluationLabel.textColor = [UIColor colorWithHexString:QMColor_999999_text];
             self.evaluationLabel.font = [UIFont systemFontOfSize:12];
             self.evaluationLabel.textAlignment = NSTextAlignmentCenter;
@@ -259,7 +261,9 @@
     self.tagView.signalTagColor = [UIColor clearColor];
     [self.backView addSubview:self.tagView];
 
-    [self refreshEvaluationLabel:self.tempTag-100];
+    if (self.tempTag-100 >= 0) {
+        [self refreshEvaluationLabel:self.tempTag-100];
+    }
     @weakify(self)
     [self.tagView setDidselectItemBlock:^(NSArray *arr) {
         @strongify(self)

@@ -53,48 +53,62 @@
     
     __weak typeof(self)weakSelf = self;
     _tabbarView.selectAction = ^{
-        Class chatRoomClass = NSClassFromString(@"QMChatRoomViewController");
-        for (UIViewController *viewController in weakSelf.navigationController.viewControllers) {
-            if ([viewController isKindOfClass:chatRoomClass]) {
-                [weakSelf.navigationController popToViewController:viewController animated:true];
-                
-                for (PHAsset *asset in weakSelf.pickedImageSet) {
+        __strong typeof(weakSelf) strongSelf = weakSelf;
+        for (PHAsset *asset in strongSelf.pickedImageSet) {
 //                    [QMPushManager share].asset = asset;
-                    PHVideoRequestOptions* options = [[PHVideoRequestOptions alloc] init];
-                    options.version = PHVideoRequestOptionsVersionOriginal;
-                    options.deliveryMode = PHVideoRequestOptionsDeliveryModeAutomatic;
-                    options.networkAccessAllowed = YES;
-                    [[PHImageManager defaultManager] requestAVAssetForVideo:asset options:options resultHandler:^(AVAsset* avasset, AVAudioMix* audioMix, NSDictionary* info){
-                        
-                        NSURL *videoURL = [(AVURLAsset *)avasset URL];
-                        
-                        // name
-                        NSString *photoPath = videoURL.absoluteString;
-        
-                        NSRange range = [photoPath rangeOfString:@"#" options:NSBackwardsSearch];
-                        if (range.length > 0) {
-                            photoPath = [photoPath substringToIndex:range.location].lowercaseString;
-                        }
-                        
-                        NSArray *array = [photoPath componentsSeparatedByString:@"/"];
-                        
-                        //                        AVURLAsset *videoAsset = (AVURLAsset*)avasset;
-                        // data
-                        NSData *videoData = [NSData dataWithContentsOfURL:videoURL];
-                        
-                        // size
-                        NSString *fileSize = [videoData length]<1024*1024 ? [NSString stringWithFormat:@"%d KB", (int)([videoData length]/1024.0)] : [NSString stringWithFormat:@"%d MB", (int)([videoData length]/1024.0/1024)];
-                        
-                        // filePath
-                        NSString * filePath = [NSString stringWithFormat:@"%@/%@", NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES)[0], array.lastObject];
-                        [videoData writeToFile:filePath atomically:YES];
-                        
-                        if (weakSelf.callBackBlock) {
-                            weakSelf.callBackBlock(array.lastObject, fileSize, array.lastObject);
-                        }
-                    }];
+            PHVideoRequestOptions* options = [[PHVideoRequestOptions alloc] init];
+            options.version = PHVideoRequestOptionsVersionOriginal;
+            options.deliveryMode = PHVideoRequestOptionsDeliveryModeAutomatic;
+            options.networkAccessAllowed = YES;
+            [[PHImageManager defaultManager] requestAVAssetForVideo:asset options:options resultHandler:^(AVAsset* avasset, AVAudioMix* audioMix, NSDictionary* info){
+                
+                NSURL *videoURL = [(AVURLAsset *)avasset URL];
+                
+                // name
+                NSString *photoPath = videoURL.absoluteString;
+
+                NSRange range = [photoPath rangeOfString:@"#" options:NSBackwardsSearch];
+                if (range.length > 0) {
+                    photoPath = [photoPath substringToIndex:range.location].lowercaseString;
                 }
+                
+                NSArray *array = [photoPath componentsSeparatedByString:@"/"];
+                
+                //                        AVURLAsset *videoAsset = (AVURLAsset*)avasset;
+                // data
+                NSData *videoData = [NSData dataWithContentsOfURL:videoURL];
+                
+                // size
+                NSString *fileSize = [videoData length]<1024*1024 ? [NSString stringWithFormat:@"%d KB", (int)([videoData length]/1024.0)] : [NSString stringWithFormat:@"%d MB", (int)([videoData length]/1024.0/1024)];
+                
+                // filePath
+                NSString * filePath = [NSString stringWithFormat:@"%@/%@", NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES)[0], array.lastObject];
+                [videoData writeToFile:filePath atomically:YES];
+                if (strongSelf.callBackBlock) {
+                    strongSelf.callBackBlock(array.lastObject, fileSize, array.lastObject);
+                }
+            }];
+        }
+        
+        Class chatRoomClass = NSClassFromString(@"QMChatRoomViewController");
+        Class ChatGuestBookClass = NSClassFromString(@"QMChatGuestBookViewController");
+        UIViewController *targetVC1 = nil;
+        UIViewController *targetVC2 = nil;
+        for (UIViewController *vc in strongSelf.navigationController.viewControllers) {
+            if ([vc isKindOfClass:chatRoomClass]) {
+                targetVC1 = vc;
             }
+            if ([vc isKindOfClass:ChatGuestBookClass]) {
+                targetVC2 = vc;
+            }
+        }
+        
+        if (targetVC2) {
+            [strongSelf.navigationController popToViewController:targetVC2 animated:YES];
+        } else if (targetVC1) {
+            [strongSelf.navigationController popToViewController:targetVC1 animated:YES];
+        } else {
+            [strongSelf.navigationController popViewControllerAnimated:YES];
         }
     };
     

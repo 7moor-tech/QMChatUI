@@ -54,15 +54,42 @@
     
     __weak QMPickedOtherViewController *strongSelf = self;
     _tabbarView.selectAction = ^{
+//        Class chatRoomClass = NSClassFromString(@"QMChatRoomViewController");
+//        for (UIViewController *viewController in strongSelf.navigationController.viewControllers) {
+//            if ([viewController isKindOfClass:chatRoomClass]) {
+//                [strongSelf.navigationController popToViewController:viewController animated:true];
+//                for (QMFileModel *model in strongSelf.pickedOtherSet) {
+//                    if (strongSelf.callBackBlock) {
+//                        strongSelf.callBackBlock(model.fileName, model.fileSize, model.filePath);
+//                    }
+//                }
+//            }
+//        }
+        
         Class chatRoomClass = NSClassFromString(@"QMChatRoomViewController");
-        for (UIViewController *viewController in strongSelf.navigationController.viewControllers) {
-            if ([viewController isKindOfClass:chatRoomClass]) {
-                [strongSelf.navigationController popToViewController:viewController animated:true];
-                for (QMFileModel *model in strongSelf.pickedOtherSet) {
-                    if (strongSelf.callBackBlock) {
-                        strongSelf.callBackBlock(model.fileName, model.fileSize, model.filePath);
-                    }
-                }
+        Class ChatGuestBookClass = NSClassFromString(@"QMChatGuestBookViewController");
+        UIViewController *targetVC1 = nil;
+        UIViewController *targetVC2 = nil;
+        for (UIViewController *vc in strongSelf.navigationController.viewControllers) {
+            if ([vc isKindOfClass:chatRoomClass]) {
+                targetVC1 = vc;
+            }
+            if ([vc isKindOfClass:ChatGuestBookClass]) {
+                targetVC2 = vc;
+            }
+        }
+        
+        if (targetVC2) {
+            [strongSelf.navigationController popToViewController:targetVC2 animated:YES];
+        } else if (targetVC1) {
+            [strongSelf.navigationController popToViewController:targetVC1 animated:YES];
+        } else {
+            [strongSelf.navigationController popViewControllerAnimated:YES];
+        }
+        
+        for (QMFileModel *model in strongSelf.pickedOtherSet) {
+            if (strongSelf.callBackBlock) {
+                strongSelf.callBackBlock(model.fileName, model.fileSize, model.filePath);
             }
         }
     };

@@ -30,6 +30,8 @@
 #import "QMHeader.h"
 #import "QMChatVideoCell.h"
 #import "QMChatRobotButtonCell.h"
+#import "QMChatLeaveCell.h"
+#import "QMFileDownloadViewController.h"
 #import <AVFoundation/AVFoundation.h>
 #import <AVKit/AVKit.h>
 @implementation QMChatRoomViewController (TableView)
@@ -79,6 +81,8 @@
         } else {
             identifier = NSStringFromClass([QMChatFileCell class]);//文件消息
         }
+    }else if ([message.messageType isEqualToString:@"Leave"]) {
+        identifier = NSStringFromClass([QMChatLeaveCell class]);//留言消息
     }else if ([message.messageType isEqualToString:@"card"]) {
         identifier = NSStringFromClass([QMChatCardCell class]);//普通卡片
     }else if ([message.messageType isEqualToString:@"cardInfo"]) {
@@ -189,7 +193,7 @@
         };
     }
     
-    if ([message.messageType isEqualToString:@"text"]) {
+    if ([message.messageType isEqualToString:@"text"] || [message.messageType isEqualToString:@"Leave"]) {
         cell.tapNetAddress = ^(NSString *address) {
             if (![address hasPrefix:@"http"]) {
                 address = [NSString stringWithFormat:@"http://%@", address];
@@ -244,7 +248,7 @@
                     [self sendText:text];
                 }
             }else {
-                if (self.KFStatus == QMKFStatusRobot) {
+                if (self.KFStatus == QMKFStatusRobot || self.KFStatus == QMKFStatusQueue) {
                     [self sendText:text];
                 }
             }
@@ -418,6 +422,16 @@
         };
     }
     
+    if ([cell isKindOfClass:[QMChatLeaveCell class]]) {
+        QMChatLeaveCell *leaveCell = (QMChatLeaveCell *) cell;
+        leaveCell.showFileBlock = ^(CustomMessage * _Nonnull message) {
+            @strongify(self)
+            QMFileDownloadViewController *showFile = [[QMFileDownloadViewController alloc] init];
+            [showFile loadData:message];
+            [self.navigationController pushViewController:showFile animated:YES];
+        };
+    }
+    
     return cell;
 }
 
@@ -516,6 +530,9 @@ static CGSize extracted(CustomMessage *message) {
         }
 
          
+    }else if ([message.messageType isEqualToString:@"Leave"]) {
+        return UITableViewAutomaticDimension;
+
     }else if ([message.messageType isEqualToString:@"image"]) {
         return UITableViewAutomaticDimension;
 

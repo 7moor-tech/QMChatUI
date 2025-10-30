@@ -60,64 +60,105 @@
     __weak QMPickedPhotoViewController *strongSelf = self;
     _tabbarView.selectAction = ^{
         Class chatRoomClass = NSClassFromString(@"QMChatRoomViewController");
-        for (UIViewController *viewController in strongSelf.navigationController.viewControllers) {
-            if ([viewController isKindOfClass:chatRoomClass]) {
-                [strongSelf.navigationController popToViewController:viewController animated:true];
+        Class ChatGuestBookClass = NSClassFromString(@"QMChatGuestBookViewController");
+        UIViewController *targetVC1 = nil;
+        UIViewController *targetVC2 = nil;
+        for (UIViewController *vc in strongSelf.navigationController.viewControllers) {
+            if ([vc isKindOfClass:chatRoomClass]) {
+                targetVC1 = vc;
+            }
+            if ([vc isKindOfClass:ChatGuestBookClass]) {
+                targetVC2 = vc;
+            }
+        }
+        
+        if (targetVC2) {
+            [strongSelf.navigationController popToViewController:targetVC2 animated:YES];
+        } else if (targetVC1) {
+            [strongSelf.navigationController popToViewController:targetVC1 animated:YES];
+        } else {
+            [strongSelf.navigationController popViewControllerAnimated:YES];
+        }
+        for (PHAsset *asset in strongSelf.pickedImageSet) {
+            [[PHImageManager defaultManager] requestImageDataForAsset:asset options:nil resultHandler:^(NSData * _Nullable imageData, NSString * _Nullable dataUTI, UIImageOrientation orientation, NSDictionary * _Nullable info) {
+                NSString *photoPath = [[info objectForKey:@"PHImageFileURLKey"] absoluteString];
+                NSArray *array = [photoPath componentsSeparatedByString:@"/"];
                 
-                for (PHAsset *asset in strongSelf.pickedImageSet) {
-                                            
-     
-//                        if (@available(iOS 13, *)) {
-//                            [[PHImageManager defaultManager] requestImageDataAndOrientationForAsset:asset options:nil resultHandler:^(NSData * _Nullable imageData, NSString * _Nullable dataUTI, CGImagePropertyOrientation orientation, NSDictionary * _Nullable info) {
+                NSString *name = array.lastObject;
+                if (!name && name.length == 0) {
+                    NSString *uuid = [[[NSUUID UUID] UUIDString] stringByReplacingOccurrencesOfString:@"-" withString:@""];
+                    name = [NSString stringWithFormat:@"%@%@",uuid,dataUTI];
+                }
+                
+                NSString *fileSize = [imageData length]<1024*1024 ? [NSString stringWithFormat:@"%d KB", (int)([imageData length]/1024.0)] : [NSString stringWithFormat:@"%d MB", (int)([imageData length]/1024.0/1024)];
+                
+                NSString * filePath = [NSString stringWithFormat:@"%@/%@", NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES)[0], name];
+                // 写入sendVideo文件夹
+                [imageData writeToFile:filePath atomically:YES];
+                if (strongSelf.callBackBlock) {
+                    strongSelf.callBackBlock(name, fileSize, name);
+                }
+            }];
+        }
+        
+//        for (UIViewController *viewController in strongSelf.navigationController.viewControllers) {
+//            if ([viewController isKindOfClass:chatRoomClass]) {
+//                [strongSelf.navigationController popToViewController:viewController animated:true];
 //
+//                for (PHAsset *asset in strongSelf.pickedImageSet) {
+//
+//
+////                        if (@available(iOS 13, *)) {
+////                            [[PHImageManager defaultManager] requestImageDataAndOrientationForAsset:asset options:nil resultHandler:^(NSData * _Nullable imageData, NSString * _Nullable dataUTI, CGImagePropertyOrientation orientation, NSDictionary * _Nullable info) {
+////
+////                                NSString *photoPath = [[info objectForKey:@"PHImageFileURLKey"] absoluteString];
+////                                NSArray *array = [photoPath componentsSeparatedByString:@"/"];
+////                                NSString *name = array.lastObject;
+////                                if (!name && name.length == 0) {
+////                                    NSString *uuid = [[[NSUUID UUID] UUIDString] stringByReplacingOccurrencesOfString:@"-" withString:@""];
+////                                    name = [NSString stringWithFormat:@"%@%@",uuid,dataUTI];
+////                                }
+////                                NSString *fileSize = [imageData length]<1024*1024 ? [NSString stringWithFormat:@"%d KB", (int)([imageData length]/1024.0)] : [NSString stringWithFormat:@"%d MB", (int)([imageData length]/1024.0/1024)];
+////
+////                                NSString * filePath = [NSString stringWithFormat:@"%@/%@", NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES)[0], name];
+////                                // 写入sendVideo文件夹
+////                                [imageData writeToFile:filePath atomically:YES];
+////
+////                                [tagViewController sendFileMessageWithName:name AndSize:fileSize AndPath:name];
+////                            }];
+////                        } else {
+//                            // Fallback on earlier versions
+//
+//                            [[PHImageManager defaultManager] requestImageDataForAsset:asset options:nil resultHandler:^(NSData * _Nullable imageData, NSString * _Nullable dataUTI, UIImageOrientation orientation, NSDictionary * _Nullable info) {
 //                                NSString *photoPath = [[info objectForKey:@"PHImageFileURLKey"] absoluteString];
 //                                NSArray *array = [photoPath componentsSeparatedByString:@"/"];
+//
 //                                NSString *name = array.lastObject;
 //                                if (!name && name.length == 0) {
 //                                    NSString *uuid = [[[NSUUID UUID] UUIDString] stringByReplacingOccurrencesOfString:@"-" withString:@""];
 //                                    name = [NSString stringWithFormat:@"%@%@",uuid,dataUTI];
 //                                }
+//
 //                                NSString *fileSize = [imageData length]<1024*1024 ? [NSString stringWithFormat:@"%d KB", (int)([imageData length]/1024.0)] : [NSString stringWithFormat:@"%d MB", (int)([imageData length]/1024.0/1024)];
 //
 //                                NSString * filePath = [NSString stringWithFormat:@"%@/%@", NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES)[0], name];
 //                                // 写入sendVideo文件夹
 //                                [imageData writeToFile:filePath atomically:YES];
-//
-//                                [tagViewController sendFileMessageWithName:name AndSize:fileSize AndPath:name];
-//                            }];
-//                        } else {
-                            // Fallback on earlier versions
-                            
-                            [[PHImageManager defaultManager] requestImageDataForAsset:asset options:nil resultHandler:^(NSData * _Nullable imageData, NSString * _Nullable dataUTI, UIImageOrientation orientation, NSDictionary * _Nullable info) {
-                                NSString *photoPath = [[info objectForKey:@"PHImageFileURLKey"] absoluteString];
-                                NSArray *array = [photoPath componentsSeparatedByString:@"/"];
-                                
-                                NSString *name = array.lastObject;
-                                if (!name && name.length == 0) {
-                                    NSString *uuid = [[[NSUUID UUID] UUIDString] stringByReplacingOccurrencesOfString:@"-" withString:@""];
-                                    name = [NSString stringWithFormat:@"%@%@",uuid,dataUTI];
-                                }
-                                
-                                NSString *fileSize = [imageData length]<1024*1024 ? [NSString stringWithFormat:@"%d KB", (int)([imageData length]/1024.0)] : [NSString stringWithFormat:@"%d MB", (int)([imageData length]/1024.0/1024)];
-                                
-                                NSString * filePath = [NSString stringWithFormat:@"%@/%@", NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES)[0], name];
-                                // 写入sendVideo文件夹
-                                [imageData writeToFile:filePath atomically:YES];
-                                if (strongSelf.callBackBlock) {
-                                    strongSelf.callBackBlock(name, fileSize, name);
-                                }
-//                                if (strongSelf.isForm) {
-//                                    if (strongSelf.callBackBlock) {
-//                                        strongSelf.callBackBlock(name, fileSize, name);
-//                                    }
-//                                }else {
-//                                    [tagViewController sendFileMessageWithName:name AndSize:fileSize AndPath:name];
+//                                if (strongSelf.callBackBlock) {
+//                                    strongSelf.callBackBlock(name, fileSize, name);
 //                                }
-                            }];
-//                        }
-                }
-            }
-        }        
+////                                if (strongSelf.isForm) {
+////                                    if (strongSelf.callBackBlock) {
+////                                        strongSelf.callBackBlock(name, fileSize, name);
+////                                    }
+////                                }else {
+////                                    [tagViewController sendFileMessageWithName:name AndSize:fileSize AndPath:name];
+////                                }
+//                            }];
+////                        }
+//                }
+//            }
+//        }
     };
     
     dispatch_async(dispatch_get_main_queue(), ^{

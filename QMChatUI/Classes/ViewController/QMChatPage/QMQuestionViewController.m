@@ -40,16 +40,32 @@
     [self getExampleQuestionData];
     self.selectSection = 3000;
     self.dataDict = [NSMutableDictionary dictionary];
+    
+    [self OpenDarkStyle:self.darkStyle];
+}
+
+- (void)viewWillAppear:(BOOL)animated {
+    [super viewWillAppear:animated];
+    [self changeUserInfaceStyle];
 }
 
 - (void)traitCollectionDidChange:(UITraitCollection *)previousTraitCollection {
    [super traitCollectionDidChange:previousTraitCollection];
    if (@available(iOS 13.0, *)) {
        UIUserInterfaceStyle style = [UITraitCollection currentTraitCollection].userInterfaceStyle;
-       if (!isDarkStyle) {
-           [QMPushManager share].isStyle = style == UIUserInterfaceStyleDark;
-           [self changeUserInfaceStyle];
-       }
+       [QMPushManager share].isStyle = style == UIUserInterfaceStyleDark;
+       [self OpenDarkStyle:self.darkStyle];
+   }
+}
+
+- (void)OpenDarkStyle:(QMDarkStyle)style {
+   
+   if (style == QMDarkStyleOpen) {
+       [QMPushManager share].isStyle = YES;
+   } else if (style == QMDarkStyleClose) {
+       [QMPushManager share].isStyle = NO;
+   } else {
+       [self changeUserInfaceStyle];
    }
 }
 
@@ -94,6 +110,7 @@
     QMQuestionSubViewController *vc = [QMQuestionSubViewController new];
     vc.backQuestion = self.backQuestion;
     vc.groupModel = model;
+    vc.darkStyle = self.darkStyle;
     [self.navigationController pushViewController:vc animated:YES];
 }
 

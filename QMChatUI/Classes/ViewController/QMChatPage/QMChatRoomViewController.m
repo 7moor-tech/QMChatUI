@@ -1187,6 +1187,8 @@
                     guestBookVC.headerTitle = dic[@"title"];
                     guestBookVC.leaveMsg = dic[@"contentTip"];
                     guestBookVC.isScheduleLeave = true;
+                    guestBookVC.darkStyle = self.darkStyle;
+                    guestBookVC.isLeavemsgAnnexAble = [dic[@"leavemsgAnnexAble"] boolValue];
                     [self removeTimer];
                     [self.navigationController pushViewController:guestBookVC animated:YES];
                 }
@@ -1200,7 +1202,7 @@
 // 坐席正在输入
 - (void)changeCustomStatus {
     
-    if (self.KFStatus == QMKFStatusClaim) {
+    if (self.KFStatus == QMKFStatusClaim || self.KFStatus == QMKFStatusRobot) {
         _titleView.stateInfoLabel.text = QMUILocalizableString(title.other_writing);
     }
     
@@ -1402,6 +1404,7 @@
             [self zhugeIoAction:@"进入技能组留言"];
             QMChatGuestBookViewController *guestBookVC = [[QMChatGuestBookViewController alloc] init];
             guestBookVC.peerId = self.peerId;
+            guestBookVC.darkStyle = self.darkStyle;
             [self removeTimer];
             [self.navigationController pushViewController:guestBookVC animated:YES];
         }];
@@ -1972,6 +1975,7 @@
     vc.backQuestion = ^(QMQuestionModel * model) {
         [wSelf insertModeltoIMDB:model];
     };
+    vc.darkStyle = self.darkStyle;
     [self.navigationController pushViewController:vc animated:YES];
 }
 

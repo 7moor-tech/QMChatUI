@@ -14,6 +14,9 @@ NS_ASSUME_NONNULL_BEGIN
 
 @property (nonatomic, copy) void(^backQuestion)(QMQuestionModel *);
 
+/**是否开启暗黑模式*/
+@property (nonatomic, assign) QMDarkStyle darkStyle;
+
 @end
 
 NS_ASSUME_NONNULL_END

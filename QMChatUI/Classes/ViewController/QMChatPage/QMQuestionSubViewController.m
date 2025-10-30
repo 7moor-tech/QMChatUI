@@ -44,16 +44,32 @@
     [self.view addSubview:self.rootView];
     self.dataArr = [NSMutableArray array];
     [self getSubCommonQuestion];
+    
+    [self OpenDarkStyle:self.darkStyle];
 }
 
 - (void)traitCollectionDidChange:(UITraitCollection *)previousTraitCollection {
    [super traitCollectionDidChange:previousTraitCollection];
    if (@available(iOS 13.0, *)) {
        UIUserInterfaceStyle style = [UITraitCollection currentTraitCollection].userInterfaceStyle;
-       if (!isDarkStyle) {
-           [QMPushManager share].isStyle = style == UIUserInterfaceStyleDark;
-           [self changeUserInfaceStyle];
-       }
+       [QMPushManager share].isStyle = style == UIUserInterfaceStyleDark;
+       [self OpenDarkStyle:self.darkStyle];
+   }
+}
+
+- (void)viewWillAppear:(BOOL)animated {
+    [super viewWillAppear:animated];
+    [self changeUserInfaceStyle];
+}
+
+- (void)OpenDarkStyle:(QMDarkStyle)style {
+   
+   if (style == QMDarkStyleOpen) {
+       [QMPushManager share].isStyle = YES;
+   } else if (style == QMDarkStyleClose) {
+       [QMPushManager share].isStyle = NO;
+   } else {
+       [self changeUserInfaceStyle];
    }
 }
 

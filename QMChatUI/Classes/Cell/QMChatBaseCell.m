@@ -145,7 +145,7 @@
         } else {
             if ([message.userType isEqualToString:@"system"]) {
                 NSString *url = [[QMConnect sdkSystemMessageIcon] stringByAddingPercentEncodingWithAllowedCharacters:[NSCharacterSet URLQueryAllowedCharacterSet]];
-                [self.iconImage sd_setImageWithURL:[NSURL URLWithString:url] placeholderImage:[UIImage imageNamed:@"qm_default_robot"]];
+                [self.iconImage sd_setImageWithURL:[NSURL URLWithString:url] placeholderImage:[UIImage imageNamed:QMChatUIImagePath(@"qm_default_robot")]];
             } else {
                 if ([message.isRobot isEqualToString:@"1"]) {
                     self.iconImage.image = [UIImage imageNamed:QMChatUIImagePath(@"qm_default_robot")];
