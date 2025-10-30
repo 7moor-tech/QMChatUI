@@ -35,6 +35,16 @@ TODO: Add long description of the pod here.
    s.dependency 'QMChatUICore', '~> 1.0.1'
    s.dependency 'QMLineSDK', '~> 4.10.6'
    s.dependency 'FQDateTimePicker', '~> 2.0.3'
+
+  # 添加部署目标配置
+  s.pod_target_xcconfig = {
+    'VALID_ARCHS' => 'x86_64 arm64',
+    'IPHONEOS_DEPLOYMENT_TARGET' => '12.0'
+  }
+  
+  s.user_target_xcconfig = {
+    'IPHONEOS_DEPLOYMENT_TARGET' => '12.0'
+  }
    
   s.subspec 'Cell' do |cell|
     cell.source_files = 'QMChatUI/Classes/Cell/*.{h,m}'
@@ -71,6 +81,7 @@ TODO: Add long description of the pod here.
     end
     view.subspec 'QMFileManager' do |manager|
       manager.source_files = "QMChatUI/Classes/View/QMFileManager/**/*.{h,m}"
+      manager.dependency 'QMChatUI/ViewController/QMImageWithWebPage'
    end
     view.subspec 'msgTask' do |task|
         task.source_files = 'QMChatUI/Classes/View/msgTask/*.{h,m}'
@@ -108,10 +119,7 @@ TODO: Add long description of the pod here.
   
  s.resource = [
     'QMChatUI/Assets/*.bundle'
- ]
-         
-   s.pod_target_xcconfig = {'VALID_ARCHS'=>'armv7 x86_64 arm64'}
-   
+ ] 
    
    #pod trunk push QMChatUI.podspec --allow-warnings
 end
