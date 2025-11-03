@@ -9,7 +9,7 @@
 
 Pod::Spec.new do |s|
   s.name             = 'QMChatUI'
-  s.version          = '1.7.4'
+  s.version          = '1.7.5'
   s.summary          = 'A short description of QMChatUI.'
 
 # This description is used to generate tags and improve search results.
@@ -45,6 +45,10 @@ TODO: Add long description of the pod here.
   s.user_target_xcconfig = {
     'IPHONEOS_DEPLOYMENT_TARGET' => '12.0'
   }
+
+  #s.xcconfig  = { 
+   # 'IPHONEOS_DEPLOYMENT_TARGET' => '12.0' 
+  #} 
    
   s.subspec 'Cell' do |cell|
     cell.source_files = 'QMChatUI/Classes/Cell/*.{h,m}'

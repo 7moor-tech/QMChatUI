@@ -526,7 +526,7 @@
 
 #pragma mark 机器人答案反馈点击事件
 - (void)helpBtnAction: (UIButton *)sender {
-    if (QMLoginManager.shared.KFStatus != QMKFStatusRobot) {
+    if (QMLoginManager.shared.KFStatus != QMKFStatusRobot && QMLoginManager.shared.KFStatus != QMKFStatusQueue) {
         return;
     }
     self.didBtnAction(YES, @"", @"");
@@ -534,7 +534,7 @@
 }
 
 - (void)noHelpBtnAction: (UIButton *)sender {
-    if (QMLoginManager.shared.KFStatus != QMKFStatusRobot) {
+    if (QMLoginManager.shared.KFStatus != QMKFStatusRobot && QMLoginManager.shared.KFStatus != QMKFStatusQueue) {
         return;
     }
     if ([QMConfigTool isOpenTaglist] ||

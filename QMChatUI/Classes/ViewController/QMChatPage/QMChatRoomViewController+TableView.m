@@ -387,7 +387,7 @@
         
         cell.tapSendMessage = ^(NSString * _Nonnull message, NSString * _Nonnull number) {
             @strongify(self)
-            if (self.KFStatus == QMKFStatusRobot) {
+            if (self.KFStatus == QMKFStatusRobot || self.KFStatus == QMKFStatusQueue) {
                 [self sendText:message];
             }
         };
