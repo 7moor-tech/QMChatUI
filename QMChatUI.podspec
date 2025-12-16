@@ -35,20 +35,6 @@ TODO: Add long description of the pod here.
    s.dependency 'QMChatUICore', '~> 1.0.1'
    s.dependency 'QMLineSDK', '~> 4.10.7'
    s.dependency 'FQDateTimePicker', '~> 2.0.3'
-
-  # 添加部署目标配置
-  s.pod_target_xcconfig = {
-    'VALID_ARCHS' => 'x86_64 arm64',
-    'IPHONEOS_DEPLOYMENT_TARGET' => '12.0'
-  }
-  
-  s.user_target_xcconfig = {
-    'IPHONEOS_DEPLOYMENT_TARGET' => '12.0'
-  }
-
-  #s.xcconfig  = { 
-   # 'IPHONEOS_DEPLOYMENT_TARGET' => '12.0' 
-  #} 
    
   s.subspec 'Cell' do |cell|
     cell.source_files = 'QMChatUI/Classes/Cell/*.{h,m}'
