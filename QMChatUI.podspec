@@ -29,6 +29,14 @@ TODO: Add long description of the pod here.
 
   s.ios.deployment_target = '12.0'
   
+
+  
+  # 避免模拟器 arm64 架构导致 lint 失败
+  s.pod_target_xcconfig = {
+    'EXCLUDED_ARCHS[sdk=iphonesimulator*]' => 'arm64',
+    'IPHONEOS_DEPLOYMENT_TARGET' => '12.0'
+  }
+  
    s.static_framework = true
    s.requires_arc = true
    s.frameworks = 'UIKit'
