@@ -108,6 +108,15 @@ TODO: Add long description of the pod here.
         
   end
   
+ # 强制依赖库使用更高的部署目标
+  s.user_target_xcconfig = {
+      'CLANG_ENABLE_OBJC_ARC' => 'YES', # 确保旧代码也被识别为ARC
+  }
+  
+  s.pod_target_xcconfig = {
+    'IPHONEOS_DEPLOYMENT_TARGET' => '12.0' # 确保自身目标是12.0
+  }
+  
  s.resource = [
     'QMChatUI/Assets/*.bundle'
  ]
