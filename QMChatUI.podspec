@@ -28,21 +28,14 @@ TODO: Add long description of the pod here.
   s.source           = { :git => 'https://github.com/7moor-tech/QMChatUI.git', :tag => s.version.to_s }
 
   s.ios.deployment_target = '12.0'
-  
+  s.static_framework = true
+  s.requires_arc = true
+  s.frameworks = 'UIKit'
 
-  
-  # 避免模拟器 arm64 架构导致 lint 失败
-  s.pod_target_xcconfig = {
-    'EXCLUDED_ARCHS[sdk=iphonesimulator*]' => 'arm64',
-    'IPHONEOS_DEPLOYMENT_TARGET' => '12.0'
-  }
-  
-   s.static_framework = true
-   s.requires_arc = true
-   s.frameworks = 'UIKit'
-   s.dependency 'QMChatUICore', '~> 1.0.1'
-   s.dependency 'QMLineSDK', '~> 4.10.7'
-   s.dependency 'FQDateTimePicker', '~> 2.0.3'
+  s.dependency 'QMChatUICore', '~> 1.0.1'
+  s.dependency 'QMLineSDK', '~> 4.10.7'
+  s.dependency 'FQDateTimePicker', '~> 2.0.3'
+
    
   s.subspec 'Cell' do |cell|
     cell.source_files = 'QMChatUI/Classes/Cell/*.{h,m}'
@@ -117,7 +110,7 @@ TODO: Add long description of the pod here.
   
  s.resource = [
     'QMChatUI/Assets/*.bundle'
- ] 
+ ]
    
    #pod trunk push QMChatUI.podspec --allow-warnings
 end
