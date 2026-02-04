@@ -678,6 +678,7 @@ static CGSize extracted(CustomMessage *message) {
             QMLogistcsInfoModel *model = [[QMLogistcsInfoModel alloc] initWithDictionary:listDict error:nil];
             height += [QMChatLogistcsInfoCell getCellHeigt:model];
         } else {
+            height += 5;
             if (message.cardType == QMMessageCardTypeNone) {
                 if(err) {
                     height += 0;
@@ -710,7 +711,10 @@ static CGSize extracted(CustomMessage *message) {
                         }
                     }
                     CGFloat cellHeight = 88*listNumber + 72*shopNumber;
-                    height += cellHeight + 85;
+                    height += cellHeight + 48;
+                    if (cardList.count > 0) {
+                        height += 40;
+                    }
                 }
             } else if (message.cardType == QMMessageCardTypeSeleced) {
                 height += 81;

@@ -15,7 +15,7 @@
 
 @property (nonatomic, strong) UITableView *moreTabView;
 @property (nonatomic, strong) UIView *bgView;
-@property (nonatomic, strong) NSArray *dataArr;
+
 @end
 
 @implementation QMMoreCardView
@@ -61,7 +61,7 @@
     [header addSubview:lab];
     
     UIButton *closeBtn = [UIButton buttonWithType:UIButtonTypeCustom];
-    [closeBtn setImage:[UIImage imageNamed:@"close_btn"] forState:UIControlStateNormal];
+    [closeBtn setImage:[UIImage imageNamed:QMChatUIImagePath(@"closeTip")] forState:UIControlStateNormal];
     closeBtn.frame = CGRectMake(CGRectGetWidth(header.frame) - 30 - 12, (header.frame.size.height - 30)/2.0, 30, 30);
     [closeBtn addTarget:self action:@selector(closeAction) forControlEvents:UIControlEventTouchUpInside];
     [header addSubview:closeBtn];
@@ -100,6 +100,7 @@
                 if (arr.count > 0) {
                     self.dataArr = arr;
                     [self.moreTabView reloadData];
+                    [self show];
                 }
             }
         }

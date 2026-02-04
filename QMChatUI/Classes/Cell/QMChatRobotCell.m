@@ -10,6 +10,7 @@
 #import "QMHeader.h"
 #import "QMChatQuoteView.h"
 #import "QMTableContainerView.h"
+#import <CommonCrypto/CommonDigest.h>
 
 @interface QMChatRobotCell ()<UITextViewDelegate>
 @property (nonatomic, strong) QMChatQuoteView *quoteView;
@@ -192,7 +193,7 @@
             if (([attach.type isEqualToString:@"image"] ||
                  [attach.type isEqualToString:@"video"]) && (attach.need_replaceImage == YES)) {
                 NSString *path = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES).firstObject;
-                path = [path stringByAppendingPathComponent:attach.url.lastPathComponent];
+                path = [path stringByAppendingPathComponent:[self MD5:attach.url]];
                 
                 if ([[NSFileManager defaultManager] fileExistsAtPath:path] == true) {
                     NSData *data = [[NSData alloc] initWithContentsOfFile:path options:NSDataReadingMappedAlways error:nil];
@@ -222,6 +223,20 @@
             self.needReloadCell(model);
         }
     }
+}
+
+- (NSString *)MD5:(NSString *)string{
+    
+    const char* input = [string UTF8String];
+    unsigned char result[CC_MD5_DIGEST_LENGTH];
+    CC_MD5(input, (CC_LONG)strlen(input), result);
+    
+    NSMutableString *digest = [NSMutableString stringWithCapacity:CC_MD5_DIGEST_LENGTH * 2];
+    for (NSInteger i = 0; i < CC_MD5_DIGEST_LENGTH; i++) {
+        [digest appendFormat:@"%02x", result[i]];
+    }
+    
+    return digest;
 }
 
 - (QMChatTextView *)contentLab {

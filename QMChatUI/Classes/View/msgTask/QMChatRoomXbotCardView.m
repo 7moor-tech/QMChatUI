@@ -35,12 +35,13 @@
 - (void)createUI {
     
     _title = [[UILabel alloc] init];
-    _title.frame = CGRectMake(12, 12, CGRectGetWidth(self.frame), 21);
+    _title.frame = CGRectMake(QMFixWidth(8), 12, CGRectGetWidth(self.frame), 21);
     _title.font = [UIFont systemFontOfSize:15];
     _title.textColor = [UIColor colorWithHexString:isDarkStyle ? QMColor_FFFFFF_text : QMColor_333333_text];
     [self addSubview:_title];
     
     _lineView1 = [[UIView alloc] init];
+    _lineView1.frame = CGRectMake(0, 40, CGRectGetWidth(self.frame), 0.5);
     _lineView1.backgroundColor = [UIColor colorWithHexString:isDarkStyle ? @"#373737" : @"#E6E6E6"];
     [self addSubview:_lineView1];
     
@@ -52,16 +53,17 @@
     [_tableView registerClass:[QMChatRoomXbotCardShopCell class] forCellReuseIdentifier:@"xbotCardShopCell"];
     [_tableView registerClass:[QMChatRoomXbotCardListCell class] forCellReuseIdentifier:@"xbotCardListCell"];
     [self addSubview:_tableView];
-    
-    _lineView2 = [[UIView alloc] init];
-    _lineView2.backgroundColor = [UIColor colorWithHexString:isDarkStyle ? @"#373737" : @"#E6E6E6"];
-    [self addSubview:_lineView2];
 
     _boomView = [[UIView alloc] init];
     _boomView.frame = CGRectMake(0, CGRectGetHeight(self.frame) - 40, CGRectGetWidth(self.frame), 40);
     [self addSubview:_boomView];
     
-    _moreButton = [[UIButton alloc] initWithFrame:CGRectMake(12, 10, 70, 20)];
+    _lineView2 = [[UIView alloc] init];
+    _lineView2.frame = CGRectMake(0, 0, CGRectGetWidth(self.frame), 0.5);
+    _lineView2.backgroundColor = [UIColor colorWithHexString:isDarkStyle ? @"#373737" : @"#E6E6E6"];
+    [_boomView addSubview:_lineView2];
+    
+    _moreButton = [[UIButton alloc] initWithFrame:CGRectMake(QMFixWidth(4), 10, 70, 20)];
     _moreButton.titleLabel.font = [UIFont systemFontOfSize:14];
     [_moreButton setTitle:@"查看更多" forState:UIControlStateNormal];
     [_moreButton setTitleColor:[UIColor colorWithHexString:@"#0D8BFF"] forState:UIControlStateNormal];
@@ -71,16 +73,19 @@
 
 - (void)setCardDic:(NSDictionary *)dic {
     _msgDic = dic;
-    _title.frame = CGRectMake(22, 12, CGRectGetWidth(self.frame) - 44, 21);
+    _title.frame = CGRectMake(QMFixWidth(8), 12, CGRectGetWidth(self.frame) - 44, 21);
     NSString *cardTitle = dic[@"data"][@"message"];
     _title.text = cardTitle.length > 0 ? cardTitle : @"";
     _title.minimumScaleFactor = 0.8;
     _title.adjustsFontSizeToFitWidth = YES;
     NSArray *cardList = dic[@"data"][@"shop_list"];
     int shop_list_show = [dic[@"data"][@"shop_list_show"] intValue] ?: 5;
-
+    [_moreButton setTitle:@"查看更多" forState:UIControlStateNormal];
+    _moreButton.hidden = YES;
+    _boomView.hidden = YES;
     if (cardList.count > 0 && self.type == QMMessageCardTypeNone) {
         _boomView.hidden = NO;
+        _moreButton.hidden = NO;
 
         int shopNumber = 0;
         int listNumber = 0;
@@ -105,12 +110,12 @@
         [_tableView reloadData];
     } else {
         _tableView.frame = CGRectMake(0, 45, CGRectGetWidth(self.frame), 0);
-        _boomView.hidden = YES;
         NSLog(@"cardView-height-%f",self.frame.size.height);
-        
+        _boomView.frame = CGRectMake(0, CGRectGetMaxY(_tableView.frame), CGRectGetWidth(self.frame), 0);
         if (self.type == QMMessageCardTypeSeleced) {
             _boomView.frame = CGRectMake(0, CGRectGetHeight(self.frame) - 40, CGRectGetWidth(self.frame), 40);
             _boomView.hidden = NO;
+            _moreButton.hidden = NO;
             [_moreButton setTitle:@"重新选择" forState:UIControlStateNormal];
         }
     }
@@ -118,18 +123,25 @@
 
 - (void)moreAction: (UIButton *)button {
     QMMoreCardView *moreView = [[QMMoreCardView alloc] initWithFrame:UIScreen.mainScreen.bounds];
-    [QMConnect changeAllCardMessageHidden];
-    [QMConnect changeCardMessageType:QMMessageCardTypeSeleced messageId:self.messageId];
+//    [QMConnect changeAllCardMessageHidden];
+//    [QMConnect changeCardMessageType:QMMessageCardTypeSeleced messageId:self.messageId];
+    if ([self.cardStyle isEqualToString:@"0"]) { // agent
+        NSArray *cardList = _msgDic[@"data"][@"shop_list"];
+        if (cardList.count > 0) {
+            moreView.dataArr = cardList;
+            [moreView show];
+        }
+    }else {
+        NSDictionary *dict = @{@"current":_msgDic[@"current"],@"item":@{@"page":@"all",@"target":@"self"}};
+        NSData *jsonData = [NSJSONSerialization dataWithJSONObject:dict options:NSJSONWritingFragmentsAllowed error:nil];
+        NSString *cardMessage = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
+        NSString * newStr = [cardMessage stringByAddingPercentEncodingWithAllowedCharacters:[NSCharacterSet URLQueryAllowedCharacterSet]];
+        NSCharacterSet *customAllowSet = [NSCharacterSet characterSetWithCharactersInString:@"=\"#%/<>?@\\^`{|}&+"].invertedSet;
+        NSString *newString = [newStr stringByAddingPercentEncodingWithAllowedCharacters:customAllowSet];
 
-    NSDictionary *dict = @{@"current":_msgDic[@"current"],@"item":@{@"page":@"all",@"target":@"self"}};
-    NSData *jsonData = [NSJSONSerialization dataWithJSONObject:dict options:NSJSONWritingFragmentsAllowed error:nil];
-    NSString *cardMessage = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
-    NSString * newStr = [cardMessage stringByAddingPercentEncodingWithAllowedCharacters:[NSCharacterSet URLQueryAllowedCharacterSet]];
-    NSCharacterSet *customAllowSet = [NSCharacterSet characterSetWithCharactersInString:@"=\"#%/<>?@\\^`{|}&+"].invertedSet;
-    NSString *newString = [newStr stringByAddingPercentEncodingWithAllowedCharacters:customAllowSet];
-
-    moreView.itemDict = @{@"msgTask": newString, @"Action": @"sdkGetXbotMsgTaskInfo", @"Message": @"查看更多商品信息"};
-    [moreView show];
+        moreView.itemDict = @{@"msgTask": newString, @"Action": @"sdkGetXbotMsgTaskInfo", @"Message": @"查看更多商品信息"};
+    }
+//    [moreView show];
     
     __weak typeof(self)wSelf = self;
     moreView.selectItem = ^(NSDictionary * _Nonnull dict) {
@@ -171,6 +183,8 @@
             
         }
         
+        [QMConnect changeCardMessageType:QMMessageCardTypeSeleced messageId:self.messageId];
+        
         __strong typeof(wSelf)sSelf = wSelf;
         NSString *current = sSelf->_msgDic[@"current"];
         NSDictionary *params = dict[@"params"];
@@ -183,8 +197,8 @@
         [msg_task setValue:itemDic forKey:@"item"];
         
         NSDictionary *cardDic = @{@"msg_task": msg_task,
-                                  @"shopList": dict
-        };
+                                  @"shopList": dict,
+                                  @"cardStyle": self.cardStyle};
         
         [wSelf selectItem:cardDic];
     };
@@ -226,7 +240,7 @@
 - (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath {
     NSString *type = _dataSource[indexPath.row][@"item_type"];
     if ([type isEqual:@"1"]) {
-        return 56+16;
+        return 72;
     }else if ([type isEqual:@"0"]) {
         return 88;
     }else {
@@ -287,6 +301,7 @@
             
             NSDictionary *cardDic = @{@"msg_task": dic,
                                       @"shopList": _dataSource[indexPath.row],
+                                      @"cardStyle": self.cardStyle
                                     };
 
             [self selectItem:cardDic];
@@ -406,6 +421,8 @@
     _listImageView = [[UIImageView alloc] initWithFrame:CGRectMake(12, 0, 72, 72)];
     _listImageView.backgroundColor = [UIColor colorWithHexString:@"#f0f0f0"];
     _listImageView.QMCornerRadius = 4;
+    _listImageView.contentMode = UIViewContentModeScaleAspectFit;
+    _listImageView.clipsToBounds = YES;
     [self addSubview:_listImageView];
     
     _title = [[UILabel alloc] initWithFrame:CGRectMake(92, 4, 126, 18)];
@@ -448,9 +465,17 @@
 
 - (void)setDataListDic:(NSDictionary *)dic cellWidth:(CGFloat)cellWidth {
     NSString *imgUrl = dic[@"img"];
-    if (imgUrl && [imgUrl stringByRemovingPercentEncoding] == imgUrl) {
-        imgUrl = [imgUrl stringByAddingPercentEncodingWithAllowedCharacters:[NSCharacterSet URLQueryAllowedCharacterSet]];
-        [_listImageView sd_setImageWithURL:[NSURL URLWithString:imgUrl]];
+    if (imgUrl) {
+        NSURL *url = [NSURL URLWithString:imgUrl];
+        
+        if (!url) {
+            NSString *encodedStr = [imgUrl stringByAddingPercentEncodingWithAllowedCharacters:[NSCharacterSet URLQueryAllowedCharacterSet]];
+            url = [NSURL URLWithString:encodedStr];
+        }
+        
+        if (url) {
+            [_listImageView sd_setImageWithURL:url];
+        }
     }
     
     _title.text = dic[@"title"];

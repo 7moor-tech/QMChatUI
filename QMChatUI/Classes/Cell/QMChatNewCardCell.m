@@ -213,7 +213,7 @@
         if (price.length > 0) {
             _price.text = price;
             _price.textAlignment = NSTextAlignmentRight;
-            _price.frame = CGRectMake(CGRectGetMaxX(_titleLabel.frame), cardLeftMargin, 90, 18);
+            _price.frame = CGRectMake(CGRectGetMaxX(_titleLabel.frame), cardLeftMargin, 60, 18);
         }else {
             _price.text = @"";
         }

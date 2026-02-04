@@ -13,6 +13,7 @@ NS_ASSUME_NONNULL_BEGIN
 @interface QMChatRoomXbotCardView : UIView <UITableViewDelegate, UITableViewDataSource>
 
 @property(nonatomic, copy) NSString *messageId;
+@property(nonatomic, copy) NSString *cardStyle;
 @property(nonatomic, assign) QMMessageCardReadType type;
 @property(nonatomic, assign) int showCount;
 

@@ -15,6 +15,7 @@ NS_ASSUME_NONNULL_BEGIN
 @property (nonatomic, copy) void(^selectItem)(NSDictionary *dict);
 
 @property (nonatomic, strong) NSDictionary *itemDict;
+@property (nonatomic, strong) NSArray *dataArr;
 
 //+ (instancetype)defualtView;
 - (void)show;
