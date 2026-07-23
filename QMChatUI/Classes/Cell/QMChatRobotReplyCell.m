@@ -35,6 +35,10 @@
 
 @end
 
+@interface QMChatRobotCell (AgentTipsLayout)
+- (void)layoutAgentTipsWithAnchorView:(UIView *)anchorView;
+@end
+
 @implementation QMChatRobotReplyCell
 
 - (void)createUI {
@@ -239,6 +243,15 @@
             make.bottom.equalTo(self.contentView).offset(-kChatBottomMargin);
             make.height.mas_greaterThanOrEqualTo(QMChatTextMinHeight);
         }];
+    }
+
+    if (message.agentTipsSwitch) {
+        BOOL hasContactActions = [message.contactPushed isEqualToString:@"1"];
+        CGFloat bottomInset = hasContactActions ? 85.0 : 50.0;
+        [self.chatBackgroundView mas_updateConstraints:^(MASConstraintMaker *make) {
+            make.bottom.equalTo(self.contentView).offset(-bottomInset);
+        }];
+        [self layoutAgentTipsWithAnchorView:hasContactActions ? self.backView : self.chatBackgroundView];
     }
     
     self.fingerUp = message.fingerUp.length > 0 ? message.fingerUp : QMUILocalizableString(title.thanks_yes);

@@ -153,30 +153,29 @@
             [self.chatBackgroundView mas_updateConstraints:^(MASConstraintMaker *make) {
                 make.bottom.equalTo(self.contentView).offset(-50).priority(999);
             }];
-            
-            [self.contentView addSubview:self.aiShowView];
-            
-            [self.aiShowView mas_remakeConstraints:^(MASConstraintMaker *make) {
-                
-                make.top.equalTo(self.chatBackgroundView.mas_bottom).offset(-4);
-                make.left.equalTo(self.chatBackgroundView).offset(0);
-                make.width.equalTo(self.chatBackgroundView);
-                make.height.mas_equalTo(40);
-                
-            }];
-            [self.aiLabel mas_remakeConstraints:^(MASConstraintMaker *make) {
-                
-                make.top.mas_equalTo(14);
-                make.left.equalTo(self.aiShowView).offset(40);
-                make.right.equalTo(self.aiShowView).offset(5);
-                make.height.mas_equalTo(15);
-                
-            }];
-            self.aiLabel.text = self.message.agentTipsContent;
+            [self layoutAgentTipsWithAnchorView:self.chatBackgroundView];
         }else{
             [self.aiShowView removeFromSuperview];
         }
     }
+}
+
+- (void)layoutAgentTipsWithAnchorView:(UIView *)anchorView {
+    [self.contentView addSubview:self.aiShowView];
+
+    [self.aiShowView mas_remakeConstraints:^(MASConstraintMaker *make) {
+        make.top.equalTo(anchorView.mas_bottom).offset(-4);
+        make.left.equalTo(self.chatBackgroundView);
+        make.width.equalTo(self.chatBackgroundView);
+        make.height.mas_equalTo(40);
+    }];
+    [self.aiLabel mas_remakeConstraints:^(MASConstraintMaker *make) {
+        make.top.mas_equalTo(14);
+        make.left.equalTo(self.aiShowView).offset(40);
+        make.right.equalTo(self.aiShowView).offset(5);
+        make.height.mas_equalTo(15);
+    }];
+    self.aiLabel.text = self.message.agentTipsContent;
 }
 
 - (void)handleImage:(CustomMessage *)model {
