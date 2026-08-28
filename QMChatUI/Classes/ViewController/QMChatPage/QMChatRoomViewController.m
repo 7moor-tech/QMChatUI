@@ -176,7 +176,7 @@
     //卡片信息
     //    [self insertCardInfoMessage];
     //newcardinfo卡片信息
-    [self insertNewCardInfoMessage];
+//    [self insertNewCardInfoMessage];
     
     [self getInvestigateData];
     

@@ -244,7 +244,7 @@
             originY += btnHeight + buttonMargin;
             [self.backView addSubview:button];
             
-            if (model.isDefaultSelected) {
+            if (model.isDefaultSelected || model.defaultSelected) {
                 self.tempTag = button.tag;
                 button.selected = YES;
             } else {
@@ -339,6 +339,7 @@
 }
 
 - (void)refreshEvaluationLabel:(NSInteger)tag {
+    self.tagValue = @[];
     if (tag < 0) {
         self.currentEvaluate = self.evaluation.evaluats.firstObject;
         [self.tagView setTagWithTagArray:self.currentEvaluate.reason selectTag:@""];
@@ -374,16 +375,19 @@
 //
 //    }
     if (self.optionName.length > 0) {
-//        if (self.tagValue.count == 0) {//self.currentEvaluate.labelRequired.boolValue &&
-//            [QMRemind showMessage:QMUILocalizableString(title.evaluation_label)];
-//            return;
-//        }
-        
-        if (self.currentEvaluate.proposalRequired.boolValue && self.textView.text.length == 0) {
+        if (self.currentEvaluate.commentRequired != nil) {
+            if (self.currentEvaluate.commentRequired.integerValue == 1 && self.tagValue.count == 0 && self.textView.text.length == 0) {
+                if (self.currentEvaluate.reason.count > 0) {
+                    [QMRemind showMessage:@"请选择标签或填写满意度评价原因"];
+                } else {
+                    [QMRemind showMessage:QMUILocalizableString(title.evaluation_reason)];
+                }
+                return;
+            }
+        } else if (self.currentEvaluate.proposalRequired.boolValue && self.textView.text.length == 0) {
             [QMRemind showMessage:QMUILocalizableString(title.evaluation_reason)];
             return;
         }
-//        [QMActivityView startAnimating];
         self.sendSelect(self.evaluation.csrDetailType,self.optionName, self.optionValue, self.tagValue, self.textView.text);
     }else{
         [QMRemind showMessage:QMUILocalizableString(title.evaluation_select)];
